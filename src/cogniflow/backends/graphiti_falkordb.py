@@ -22,6 +22,7 @@ from typing import Any
 from graphiti_core import Graphiti
 from graphiti_core.cross_encoder.openai_reranker_client import OpenAIRerankerClient
 from graphiti_core.driver.falkordb_driver import FalkorDriver
+from graphiti_core.driver.neo4j_driver import Neo4jDriver
 from graphiti_core.edges import EntityEdge
 from graphiti_core.llm_client.config import LLMConfig
 from graphiti_core.llm_client.openai_generic_client import OpenAIGenericClient
@@ -68,6 +69,11 @@ class GraphitiFalkorDBConfig:
     # (e.g. "recency"); validity-filtering always runs first (see read()).
     retrieval_policy: str = "default"
     retrieval_params: dict[str, Any] = field(default_factory=dict)
+    # Backend driver selection (T1 multi-backend). "falkordb" (default) or "neo4j".
+    backend_driver: str = "falkordb"
+    neo4j_uri: str = "bolt://localhost:7687"
+    neo4j_user: str = "neo4j"
+    neo4j_password: str = "neo4j"
 
     @classmethod
     def from_env(cls, group_id: str = "cogniflow") -> GraphitiFalkorDBConfig:
@@ -136,7 +142,17 @@ class GraphitiFalkorDBBackend:
         # Write listeners (e.g. a CachingAuditLedger.note_write) fire after each write
         # so current-knowledge cache entries for the group are invalidated.
         self._write_listeners: list[Any] = []
-        self._driver = FalkorDriver(host=config.host, port=config.port, database=config.group_id)
+        if config.backend_driver == "neo4j":
+            # Same graphiti GraphDriver abstraction; the audit Cypher is standard and
+            # runs unchanged. group scoping is via the database name.
+            self._driver = Neo4jDriver(
+                config.neo4j_uri, config.neo4j_user, config.neo4j_password
+            )
+        else:
+            self._driver = FalkorDriver(
+                host=config.host, port=config.port, database=config.group_id
+            )
+        self._is_neo4j = config.backend_driver == "neo4j"
         llm_config = LLMConfig(
             api_key=config.llm_api_key,
             base_url=config.llm_base_url,
@@ -210,6 +226,8 @@ class GraphitiFalkorDBBackend:
         created, invalidated = [], []
         for edge in result.edges:
             (invalidated if edge.expired_at is not None else created).append(edge.uuid)
+        if invalidated and created:
+            await self._persist_superseded_by(invalidated, created[0], episode.id)
         return WriteReceipt(
             episode_id=episode.id,
             created_belief_ids=tuple(created),
@@ -234,6 +252,8 @@ class GraphitiFalkorDBBackend:
         result = await self._graphiti.add_triplet(source, edge, target)
         created = [e.uuid for e in result.edges if e.expired_at is None]
         invalidated = [e.uuid for e in result.edges if e.expired_at is not None]
+        if invalidated and created:
+            await self._persist_superseded_by(invalidated, created[0], episode.id)
         return WriteReceipt(
             episode_id=episode.id,
             created_belief_ids=tuple(created),
@@ -297,16 +317,45 @@ class GraphitiFalkorDBBackend:
         " RETURN r.uuid AS uuid, r.fact AS fact, r.name AS name, "
         "r.created_at AS created_at, r.valid_at AS valid_at, r.invalid_at AS invalid_at, "
         "r.expired_at AS expired_at, r.episodes AS episodes, r.group_id AS group_id, "
+        "r.superseded_by AS superseded_by, r.superseded_by_episode AS superseded_by_episode, "
         "a.uuid AS src, b.uuid AS tgt"
     )
 
+    async def _persist_superseded_by(
+        self, invalidated_ids: list[str], by_belief_id: str, episode_id: str
+    ) -> None:
+        """SUP: stamp the back-link at write time so provenance is exact, not a temporal
+        heuristic. Stored on the superseded edges in the same write."""
+        await self._driver.execute_query(
+            "MATCH ()-[r:RELATES_TO]->() WHERE r.uuid IN $ids "
+            "SET r.superseded_by = $by, r.superseded_by_episode = $ep",
+            ids=list(invalidated_ids),
+            by=by_belief_id,
+            ep=episode_id,
+        )
+
     @staticmethod
-    def _parse_dt(value: str | None) -> datetime | None:
-        return datetime.fromisoformat(value) if value else None
+    def _parse_dt(value: Any) -> datetime | None:
+        if value is None:
+            return None
+        if isinstance(value, str):
+            return datetime.fromisoformat(value)
+        if isinstance(value, datetime):
+            return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+        to_native = getattr(value, "to_native", None)  # neo4j.time.DateTime
+        if to_native is not None:
+            native = to_native()
+            return native if native.tzinfo else native.replace(tzinfo=timezone.utc)
+        return None
 
     @staticmethod
     def _iso(value: datetime) -> str:
         return value.astimezone(timezone.utc).isoformat()
+
+    def _dt_param(self, value: datetime) -> Any:
+        # Neo4j stores native temporals -> pass a datetime (the driver converts it);
+        # FalkorDB stores ISO strings that sort lexicographically -> pass the ISO string.
+        return value.astimezone(timezone.utc) if self._is_neo4j else self._iso(value)
 
     def _row_to_belief(self, rec: dict[str, Any]) -> Belief:
         return Belief(
@@ -322,6 +371,8 @@ class GraphitiFalkorDBBackend:
                 "group_id": rec.get("group_id"),
                 "source_node_uuid": rec.get("src"),
                 "target_node_uuid": rec.get("tgt"),
+                "superseded_by": rec.get("superseded_by"),
+                "superseded_by_episode": rec.get("superseded_by_episode"),
             },
         )
 
@@ -334,22 +385,36 @@ class GraphitiFalkorDBBackend:
         self, as_of: datetime, group_id: str | None = None
     ) -> list[Belief]:
         # Push the event-time predicate to the DB (this is what graphiti.search failed
-        # to do); the pure function is authoritative on the bounded set.
+        # to do); the pure function is authoritative on the bounded set. The group
+        # filter is required for backends with a shared DB (Neo4j); harmless on FalkorDB.
+        gid = group_id or self.group_id
         rows = await self._fetch(
-            "WHERE (r.valid_at IS NULL OR r.valid_at <= $t)", t=self._iso(as_of)
+            "WHERE r.group_id = $gid AND (r.valid_at IS NULL OR r.valid_at <= $t)",
+            gid=gid,
+            t=self._dt_param(as_of),
         )
         return _event_time_query(rows, as_of)
 
     async def system_time_replay(
         self, system_time: datetime, group_id: str | None = None
     ) -> list[Belief]:
-        rows = await self._fetch("WHERE r.created_at <= $s", s=self._iso(system_time))
+        gid = group_id or self.group_id
+        rows = await self._fetch(
+            "WHERE r.group_id = $gid AND r.created_at <= $s",
+            gid=gid,
+            s=self._dt_param(system_time),
+        )
         return _system_time_replay(rows, system_time)
 
     async def bitemporal_query(
         self, system_time: datetime, event_time: datetime, group_id: str | None = None
     ) -> list[Belief]:
-        rows = await self._fetch("WHERE r.created_at <= $s", s=self._iso(system_time))
+        gid = group_id or self.group_id
+        rows = await self._fetch(
+            "WHERE r.group_id = $gid AND r.created_at <= $s",
+            gid=gid,
+            s=self._dt_param(system_time),
+        )
         return _bitemporal_query(rows, system_time, event_time)
 
     async def provenance_trace(
@@ -360,14 +425,25 @@ class GraphitiFalkorDBBackend:
             return ProvenanceTrace(belief_id=belief_id)
         belief = rows[0]
         superseded_belief = superseded_episode = None
-        # Back-link strategy (T4, option a): no superseded_by is stored, so reconstruct
-        # the superseding fact by temporal join - the belief whose validity began
-        # exactly when this one ended (valid_at == this.invalid_at), ingested around
-        # this.expired_at.
+        # SUP: prefer the back-link stamped at write time (exact, not a heuristic).
+        stored_by = belief.metadata.get("superseded_by")
+        if stored_by:
+            return ProvenanceTrace(
+                belief_id=belief_id,
+                asserted_by=belief.provenance,
+                superseded_by_belief=stored_by,
+                superseded_by_episode=belief.metadata.get("superseded_by_episode"),
+                invalid_at=belief.invalid_at,
+                expired_at=belief.expired_at,
+            )
+        # Fallback (older data without the stamp): reconstruct by temporal join - the
+        # belief whose validity began when this one ended (valid_at == this.invalid_at),
+        # ingested around this.expired_at. Ambiguous if two facts share that boundary.
         if belief.invalid_at is not None:
             candidates = await self._fetch(
-                "WHERE r.valid_at = $iv AND r.uuid <> $uuid",
-                iv=self._iso(belief.invalid_at),
+                "WHERE r.group_id = $gid AND r.valid_at = $iv AND r.uuid <> $uuid",
+                gid=group_id or self.group_id,
+                iv=self._dt_param(belief.invalid_at),
                 uuid=belief_id,
             )
             if candidates:

@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+from .archive import (
+    ArchiveStore,
+    InMemoryArchive,
+    bitemporal_query_archived,
+    system_time_replay_archived,
+)
 from .audit import (
     AuditLedger,
     believed_at,
@@ -53,6 +59,11 @@ __all__ = [
     "event_time_query",
     "bitemporal_query",
     "ProvenanceTrace",
+    # archive (L5 scale)
+    "ArchiveStore",
+    "InMemoryArchive",
+    "system_time_replay_archived",
+    "bitemporal_query_archived",
     # policies (interfaces)
     "RetrievalPolicy",
     "ValidityPolicy",

@@ -68,6 +68,26 @@ CASES = [
         candidates=(_b("c4", "Acme Corp is headquartered in Boston", 2019),),
         expected_superseded=False,
     ),
+    FalsificationCase(
+        target=_b("t5", "Acme Corp's CEO is Alice", 2019, 2021),
+        candidates=(_b("c5", "Acme Corp's CEO is Carol", 2021),),
+        expected_superseded=True,
+    ),
+    FalsificationCase(
+        target=_b("t6", "Acme Corp employs 100 people", 2018, 2020),
+        candidates=(_b("c6", "Acme Corp employs 250 people", 2020),),
+        expected_superseded=True,
+    ),
+    FalsificationCase(
+        target=_b("t7", "Acme Corp is headquartered in Boston", 2019),
+        candidates=(_b("c7", "Acme Corp launched a new product", 2020),),
+        expected_superseded=False,
+    ),
+    FalsificationCase(
+        target=_b("t8", "Dana is a contractor at Acme", 2022),
+        candidates=(_b("c8", "Acme Corp's CEO is Carol", 2021),),
+        expected_superseded=False,
+    ),
 ]
 
 
@@ -80,6 +100,9 @@ def test_verify_fact_reliability_is_measured() -> None:
         f"verify_fact eval: precision={report.precision:.2f} recall={report.recall:.2f} "
         f"accuracy={report.accuracy:.2f} indeterminate={report.indeterminate}/{report.total}"
     )
-    # Modest, measured bounds (not a single happy-path assertion).
-    assert report.recall >= 0.5, report
+    # Recall is the HEADLINE for an audit ledger: a missed contradiction (false "not
+    # superseded") is the dangerous error. Bounds are measured over the corpus, not a
+    # single happy-path run; grow the corpus over time to tighten them.
+    assert report.total >= 8
+    assert report.recall >= 0.6, f"recall too low (audit risk): {report}"
     assert report.precision >= 0.5, report

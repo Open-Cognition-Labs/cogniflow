@@ -28,10 +28,12 @@ with a fake substrate and has no third-party imports.
 from __future__ import annotations
 
 import asyncio
+import json
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
+from pathlib import Path
+from typing import Any, Protocol, runtime_checkable
 
 from .core.contracts import AsyncSubstrate
 from .core.types import Episode, utc_now
@@ -50,6 +52,76 @@ class Observation:
     statement: str
     triple: dict[str, Any] | None = None
     reference_time: datetime | None = None
+
+
+def _obs_to_dict(obs: Observation) -> dict[str, Any]:
+    return {
+        "id": obs.id,
+        "group_id": obs.group_id,
+        "statement": obs.statement,
+        "triple": obs.triple,
+        "reference_time": obs.reference_time.isoformat() if obs.reference_time else None,
+    }
+
+
+def _obs_from_dict(d: dict[str, Any]) -> Observation:
+    rt = d.get("reference_time")
+    return Observation(
+        id=d["id"],
+        group_id=d["group_id"],
+        statement=d["statement"],
+        triple=d.get("triple"),
+        reference_time=datetime.fromisoformat(rt) if rt else None,
+    )
+
+
+@runtime_checkable
+class QueueJournal(Protocol):
+    """Durable record of pending observations (Q-DUR). With a journal, a "queued"
+    observation survives a process restart: ``recover()`` re-enqueues what was never
+    acknowledged. Without one (the default), the queue is in-process only."""
+
+    def append(self, obs: Observation) -> None: ...
+
+    def remove(self, observation_id: str) -> None: ...
+
+    def load(self) -> list[Observation]: ...
+
+
+class JsonFileJournal:
+    """A simple durable journal: one JSON object per pending observation in a file.
+
+    Removed on success or dead-letter. Not high-throughput, but it closes the
+    vanish-on-restart trust gap; a production deployment can swap in a Redis-stream
+    journal behind the same Protocol.
+    """
+
+    def __init__(self, path: str) -> None:
+        self._path = Path(path)
+        self._entries: dict[str, dict[str, Any]] = {}
+        if self._path.exists():
+            for line in self._path.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if line:
+                    obj = json.loads(line)
+                    self._entries[obj["id"]] = obj
+
+    def _flush(self) -> None:
+        self._path.write_text(
+            "\n".join(json.dumps(e) for e in self._entries.values()), encoding="utf-8"
+        )
+
+    def append(self, obs: Observation) -> None:
+        self._entries[obs.id] = _obs_to_dict(obs)
+        self._flush()
+
+    def remove(self, observation_id: str) -> None:
+        if observation_id in self._entries:
+            del self._entries[observation_id]
+            self._flush()
+
+    def load(self) -> list[Observation]:
+        return [_obs_from_dict(e) for e in self._entries.values()]
 
 
 @dataclass(frozen=True, slots=True)
@@ -97,17 +169,29 @@ class WriteBackQueue:
         max_pending_per_group: int = 100,
         max_retries: int = 3,
         retry_backoff_seconds: float = 0.2,
+        journal: QueueJournal | None = None,
     ) -> None:
         self._backend_factory = backend_factory
         self._max_pending = max_pending_per_group
         self._max_retries = max_retries
         self._retry_backoff = retry_backoff_seconds
+        self._journal = journal
         self._channels: dict[str, _GroupChannel] = {}
         self._closed = False
 
+    def recover(self) -> int:
+        """Re-enqueue observations a journal recorded but never acknowledged (Q-DUR).
+        Call once at startup. Returns the number recovered. No-op without a journal."""
+        if self._journal is None:
+            return 0
+        pending = self._journal.load()
+        for obs in pending:
+            self.enqueue(obs, _journal=False)  # already journaled
+        return len(pending)
+
     # --- public API --------------------------------------------------------------
 
-    def enqueue(self, observation: Observation) -> EnqueueAck:
+    def enqueue(self, observation: Observation, *, _journal: bool = True) -> EnqueueAck:
         """Non-blocking. Starts a per-group worker if needed, then ``put_nowait``.
 
         Returns "queued", or "rejected" with reason "saturated" when the per-group
@@ -127,6 +211,8 @@ class WriteBackQueue:
                 pending=channel.queue.qsize(),
             )
             return EnqueueAck(observation.id, "rejected", "saturated")
+        if _journal and self._journal is not None:
+            self._journal.append(observation)  # durable: survives restart until acked
         log_queue_event(
             "enqueue",
             group_id=observation.group_id,
@@ -229,6 +315,8 @@ class WriteBackQueue:
             try:
                 receipt = await backend.write(episode)
                 channel.last_ingested_at = utc_now()
+                if self._journal is not None:
+                    self._journal.remove(observation.id)  # acknowledged -> durable record cleared
                 log_queue_event(
                     "success",
                     group_id=group_id,
@@ -251,6 +339,8 @@ class WriteBackQueue:
                 # Retry exhausted: dead-letter. Distinct event (D1), not a normal
                 # failure, so monitoring can alert on silent data loss. Never a crash.
                 channel.failed.append(observation.id)
+                if self._journal is not None:
+                    self._journal.remove(observation.id)  # dead-lettered; recorded in failed[]
                 log_queue_event(
                     "dead_letter",
                     group_id=group_id,

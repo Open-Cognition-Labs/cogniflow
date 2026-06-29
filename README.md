@@ -7,20 +7,19 @@ superseded beliefs → persist the verdict → reshape the next retrieval.
 
 This is **ChronoRAG** (temporal) × **PALIMPSEST** (self-falsifying) as a library.
 
-> **Status: Phase 5 (inline verification + advanced retrieval - the opt-in probabilistic tier).**
-> The expensive, opt-in capabilities are in, structurally fenced off from the deterministic
-> ledger. `verify_fact` is the LLM `FalsificationPolicy` (registry `falsification: llm`) plus
-> a tool: **read-only and advisory** - it returns a verdict and never writes (acting on it
-> routes through the existing queued write-back). It is **bounded**: timeout, defined
-> fallback, and a distinguishable *indeterminate* verdict; any failure degrades to
-> indeterminate, never a confident clean and never a mutation. Its reliability is **measured**
-> (precision/recall on a labeled set via `cogniflow.eval`), not asserted by one green run.
-> Retrieval ranking is opt-in and default-off, with **validity-filter before rank** (a
-> correctness decision). Point-in-time caching is **dual-axis**: frozen past-S replays cache
-> permanently; current-knowledge event-time invalidates on write. R1: no function-calling
-> model is configured, so the agent stays ReAct and that re-query reliability is documented.
-> Deferred to Phase 6: multi-backend (Neo4j parity), persist `superseded_by`, scale/partition,
-> non-OpenAI swap verification. Replay UI stays a separate optional package.
+> **Status: Phase 6 - hardened for scale and contributors (1.0-ready).**
+> The auditable, self-hostable belief ledger for agents. Both original promises are cashed:
+> **(1) multi-backend** - a Neo4j backend passes the *same* heartbeat / both-stamps / replay
+> un-knowing / provenance assertions as FalkorDB with no weakened check and no core
+> special-casing (the Phase-0 abstraction held); **(2) the contributor proof** - a new policy
+> added entirely from the public API, outside `core/`, certified by the same conformance
+> suite. The deferred-debt ledger is fully disposed (see `PROJECT_STATUS.md`): durable queue
+> journal, write-time `superseded_by`, archive seam with correct replay over archived history,
+> a CI integration lane over real backends, and a grown verify_fact eval with **recall** as
+> the headline. Non-OpenAI is real: the whole pipeline runs on MiniMax-M3 via NVIDIA.
+> Extend it from [CONTRIBUTING.md](CONTRIBUTING.md) + [docs/EXTENDING.md](docs/EXTENDING.md)
+> without touching core. Non-goals (stay honest): no UI in core, no hosted offering,
+> self-hostable is the moat.
 
 ## Design rule
 

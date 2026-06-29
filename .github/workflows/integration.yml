@@ -1,0 +1,49 @@
+name: integration
+
+# CI integration lane (CI-INT): spins up real backends and runs the integration
+# suite, so heartbeat / loop / replay / multi-backend parity are CI-gated, not only
+# run locally. This is also what makes a contributor's PR checkable against
+# integration. LLM-dependent tests run only when the COGNIFLOW_LLM_* secrets are set;
+# otherwise they skip cleanly (the job still passes).
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      falkordb:
+        image: falkordb/falkordb:latest
+        ports:
+          - 6379:6379
+      neo4j:
+        image: neo4j:5
+        env:
+          NEO4J_AUTH: neo4j/cogniflowtest
+        ports:
+          - 7687:7687
+          - 7474:7474
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[all,dev]"
+      - name: Integration suite (real backends; LLM tests gated on secret)
+        env:
+          COGNIFLOW_LLM_API_KEY: ${{ secrets.COGNIFLOW_LLM_API_KEY }}
+          COGNIFLOW_LLM_BASE_URL: ${{ secrets.COGNIFLOW_LLM_BASE_URL }}
+          COGNIFLOW_LLM_MODEL: ${{ secrets.COGNIFLOW_LLM_MODEL }}
+          COGNIFLOW_NEO4J_URI: bolt://localhost:7687
+          COGNIFLOW_NEO4J_USER: neo4j
+          COGNIFLOW_NEO4J_PASSWORD: cogniflowtest
+        run: pytest tests/integration -q
