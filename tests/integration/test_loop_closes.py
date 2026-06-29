@@ -138,8 +138,10 @@ def test_loop_closes_through_agent() -> None:
             )
             s2023 = [s.belief.statement for s in r2023.results]
             s2025 = [s.belief.statement for s in r2025.results]
-            assert any("Denver" in x for x in s2023) and not any("Seattle" in x for x in s2023), s2023
-            assert any("Seattle" in x for x in s2025) and not any("Denver" in x for x in s2025), s2025
+            assert any("Denver" in x for x in s2023), s2023
+            assert not any("Seattle" in x for x in s2023), s2023
+            assert any("Seattle" in x for x in s2025), s2025
+            assert not any("Denver" in x for x in s2025), s2025
 
             # acceptance #2: falsification was free - the Denver edge got both stamps
             denver_edge = await EntityEdge.get_by_uuid(backend._driver, denver_id)
