@@ -217,3 +217,53 @@ def test_observability_emits_reject_on_saturation() -> None:
         assert "cogniflow.writeback.reject" in events
 
     asyncio.run(run())
+
+
+def test_dead_letters_are_observable() -> None:
+    # D1: a retry-exhausted write must be a first-class signal, not silent loss.
+    async def run() -> None:
+        events: list[str] = []
+        observability.clear_sinks()
+        observability.add_sink(lambda name, payload: events.append(name))
+        backend = _FakeBackend(fail_times=5)  # always fails within max_retries
+
+        async def factory(_gid: str):
+            return backend
+
+        queue = WriteBackQueue(factory, max_retries=2, retry_backoff_seconds=0.0)
+        try:
+            queue.enqueue(_obs(1))
+            await queue.drain()
+        finally:
+            await queue.aclose()
+            observability.clear_sinks()
+
+        assert queue.failed_count("g") == 1
+        status = queue.freshness("g")
+        assert status.degraded is True
+        assert status.failed_count == 1
+        assert status.last_ingested_at is None  # never succeeded, and it says so honestly
+        assert "cogniflow.writeback.dead_letter" in events  # distinct event, not "fail"
+
+
+def test_drain_waits_for_successful_retry() -> None:
+    # D2: drain() must not return until the *successful retry* completes, not merely
+    # the first attempt's task_done.
+    async def run() -> None:
+        backend = _FakeBackend(fail_times=1)  # fails once, succeeds on retry
+
+        async def factory(_gid: str):
+            return backend
+
+        queue = WriteBackQueue(factory, max_retries=3, retry_backoff_seconds=0.05)
+        try:
+            queue.enqueue(_obs(1))
+            await queue.drain()
+            # if drain returned after attempt 1, this would be None / count 1
+            assert queue.last_ingested_at("g") is not None
+            assert backend.write_count == 2
+            assert len(backend.episodes) == 1
+        finally:
+            await queue.aclose()
+
+    asyncio.run(run())

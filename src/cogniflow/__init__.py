@@ -18,6 +18,14 @@ from .core.types import (
     WriteReceipt,
     utc_now,
 )
+from .registry import (
+    FAMILIES,
+    PolicyNotFoundError,
+    available_policies,
+    build_policies,
+    create_policy,
+    register_policy,
+)
 
 __version__ = "0.0.0"
 
@@ -32,5 +40,12 @@ __all__ = [
     "FalsificationVerdict",
     "WriteReceipt",
     "utc_now",
+    # policy registry (L3 plugin seam)
+    "FAMILIES",
+    "PolicyNotFoundError",
+    "register_policy",
+    "create_policy",
+    "available_policies",
+    "build_policies",
     "__version__",
 ]

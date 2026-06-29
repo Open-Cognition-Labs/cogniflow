@@ -15,8 +15,9 @@ from __future__ import annotations
 import inspect
 import os
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from typing import Any
 
 from graphiti_core import Graphiti
 from graphiti_core.cross_encoder.openai_reranker_client import OpenAIRerankerClient
@@ -27,7 +28,7 @@ from graphiti_core.llm_client.openai_generic_client import OpenAIGenericClient
 from graphiti_core.nodes import EntityNode, EpisodeType
 from graphiti_core.search.search_filters import ComparisonOperator, DateFilter, SearchFilters
 
-from ..core.policies import DefaultValidityPolicy, ValidityPolicy, filter_valid
+from ..core.policies import ValidityPolicy, filter_valid
 from ..core.types import (
     Belief,
     Episode,
@@ -38,6 +39,7 @@ from ..core.types import (
     WriteReceipt,
 )
 from ..observability import log_read
+from ..registry import create_policy
 from ._local_embedder import LocalDeterministicEmbedder
 
 
@@ -56,6 +58,9 @@ class GraphitiFalkorDBConfig:
     llm_base_url: str | None = None
     llm_model: str | None = None
     embedding_dim: int = 1024
+    # L3 policy selection by name (fail-loud via the registry).
+    validity_policy: str = "strict"
+    validity_params: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     def from_env(cls, group_id: str = "cogniflow") -> GraphitiFalkorDBConfig:
@@ -113,8 +118,11 @@ class GraphitiFalkorDBBackend:
     ) -> None:
         self.config = config
         self.group_id = config.group_id
-        # The single shared validity definition (G1/T1). Pluggable later (Phase 3).
-        self._validity: ValidityPolicy = validity or DefaultValidityPolicy()
+        # The single shared validity instance, selected by config name via the
+        # registry (fail-loud) unless an instance is injected directly.
+        self._validity: ValidityPolicy = validity or create_policy(
+            "validity", config.validity_policy, **config.validity_params
+        )
         self._driver = FalkorDriver(host=config.host, port=config.port, database=config.group_id)
         llm_config = LLMConfig(
             api_key=config.llm_api_key,

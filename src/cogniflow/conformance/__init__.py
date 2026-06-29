@@ -9,6 +9,10 @@ backend.
 
 from __future__ import annotations
 
+from .policy_suites import (
+    assert_policy_conforms,
+    run_policy_conformance,
+)
 from .suite import (
     CheckResult,
     assert_conforms,
@@ -23,4 +27,6 @@ __all__ = [
     "assert_conforms",
     "run_conformance_async",
     "assert_conforms_async",
+    "run_policy_conformance",
+    "assert_policy_conforms",
 ]

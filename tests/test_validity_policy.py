@@ -77,3 +77,19 @@ def test_filter_valid_recovers_fact_beyond_naive_top_k() -> None:
     assert filter_valid(candidates[:top_k], as_of=_dt(2020)) == []
     # over-fetch + filter + truncate keeps the real fact
     assert kept[:top_k] == [target]
+
+
+def test_t5_regression_validity_agrees_after_generalization() -> None:
+    # T5: validity is now "one registered policy among the family". The default
+    # ("strict") built via the registry must still match the in-process
+    # DefaultValidityPolicy used by the substrate read on the canonical case.
+    from cogniflow.registry import create_policy
+
+    registered = create_policy("validity", "strict")
+    direct = DefaultValidityPolicy()
+    boston = _boston()
+    for as_of in (_dt(2019), _dt(2020), _dt(2022), _dt(2023)):
+        assert registered.is_valid(boston, as_of) == direct.is_valid(boston, as_of)
+    # the heartbeat case specifically
+    assert registered.is_valid(boston, _dt(2020)) is True
+    assert registered.is_valid(boston, _dt(2023)) is False

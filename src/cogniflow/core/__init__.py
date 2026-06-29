@@ -4,11 +4,15 @@ from __future__ import annotations
 
 from .contracts import AsyncSubstrate, Substrate
 from .policies import (
+    AlwaysWritebackPolicy,
     DefaultRetrievalPolicy,
     DefaultValidityPolicy,
     FalsificationPolicy,
+    GraceWindowValidityPolicy,
+    IntervalOverlapFalsificationPolicy,
     NeverWritebackPolicy,
     NoFalsificationPolicy,
+    RecencyRetrievalPolicy,
     RetrievalPolicy,
     ValidityPolicy,
     WritebackPolicy,
@@ -34,11 +38,15 @@ __all__ = [
     "ValidityPolicy",
     "FalsificationPolicy",
     "WritebackPolicy",
-    # policies (trivial defaults)
+    # policies (reference implementations)
     "DefaultRetrievalPolicy",
+    "RecencyRetrievalPolicy",
     "DefaultValidityPolicy",
+    "GraceWindowValidityPolicy",
     "NoFalsificationPolicy",
+    "IntervalOverlapFalsificationPolicy",
     "NeverWritebackPolicy",
+    "AlwaysWritebackPolicy",
     "filter_valid",
     # types
     "Belief",

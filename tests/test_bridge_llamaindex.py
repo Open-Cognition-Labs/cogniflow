@@ -23,7 +23,7 @@ from cogniflow.bridges.llamaindex.postprocessor import (  # noqa: E402
     TemporalValidityPostprocessor,
 )
 from cogniflow.bridges.llamaindex.retriever import TemporalGraphRetriever  # noqa: E402
-from cogniflow.core.policies import filter_valid  # noqa: E402
+from cogniflow.core.policies import DefaultValidityPolicy, filter_valid  # noqa: E402
 from cogniflow.core.types import (  # noqa: E402
     Belief,
     RetrievalQuery,
@@ -94,7 +94,7 @@ def _node(belief: Belief) -> NodeWithScore:
 
 def test_postprocessor_uses_shared_policy_and_drops_future_fact() -> None:
     nodes = [_node(_boston()), _node(_denver())]
-    pp = TemporalValidityPostprocessor(as_of=_dt(2020))
+    pp = TemporalValidityPostprocessor(validity_policy=DefaultValidityPolicy(), as_of=_dt(2020))
     kept = pp.postprocess_nodes(nodes)
     # at 2020 only Boston is valid - exactly what the backend read would keep
     assert [n.node.text for n in kept] == ["Acme Corp is headquartered in Boston"]
@@ -102,7 +102,7 @@ def test_postprocessor_uses_shared_policy_and_drops_future_fact() -> None:
 
 def test_postprocessor_excludes_invalidated_fact_after_supersession() -> None:
     nodes = [_node(_boston()), _node(_denver())]
-    pp = TemporalValidityPostprocessor(as_of=_dt(2023))
+    pp = TemporalValidityPostprocessor(validity_policy=DefaultValidityPolicy(), as_of=_dt(2023))
     kept = [n.node.text for n in pp.postprocess_nodes(nodes)]
     assert kept == ["Acme Corp is headquartered in Denver"]
 
@@ -119,11 +119,10 @@ def test_postprocessor_uses_injected_policy_instance() -> None:
     assert pp.postprocess_nodes([_node(_boston())]) == []  # injected policy drops everything
 
 
-def test_postprocessor_defaults_when_no_policy_injected() -> None:
-    from cogniflow.core.policies import DefaultValidityPolicy
-
-    pp = TemporalValidityPostprocessor(as_of=_dt(2020))
-    assert isinstance(pp.validity, DefaultValidityPolicy)
+def test_postprocessor_requires_explicit_policy_fail_loud() -> None:
+    # T2/P1': no silent default. A missing policy must raise at construction time.
+    with pytest.raises(ValueError):
+        TemporalValidityPostprocessor(as_of=_dt(2020))
 
 
 def test_retriever_async_override_runs_inside_event_loop() -> None:

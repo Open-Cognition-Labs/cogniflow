@@ -7,18 +7,19 @@ superseded beliefs → persist the verdict → reshape the next retrieval.
 
 This is **ChronoRAG** (temporal) × **PALIMPSEST** (self-falsifying) as a library.
 
-> **Status: Phase 2 (the loop closes - write-back).**
-> The agent's own action reshapes the memory it reads. Via a `record_observation`
-> tool, the agent enqueues a write that ingests asynchronously and automatically
-> falsifies what it contradicts; a later point-in-time read reflects the supersession.
-> Proven through the agent: record "Acme moved to Seattle, 2024", drain the queue, then
-> `as_of=2023` -> Denver and `as_of=2025` -> Seattle, with the Denver edge
-> auto-invalidated by ingestion (falsification is free). The production component is the
-> `WriteBackQueue` (`cogniflow/writeback.py`): per-`group_id` serial, concurrent across
-> groups, non-blocking enqueue, bounded backpressure (reject-with-signal), retry with
-> dead-letter, deterministic `drain()`, and a `last_ingested_at` freshness surface.
-> Deferred: pluggable policies (Phase 3), replay/audit API (Phase 4), inline
-> `verify_fact` (Phase 5), advanced rerank (Phase 5).
+> **Status: Phase 3 (the policy layer - integration becomes a framework).**
+> The four policy families (Retrieval / Validity / Falsification / Writeback) are now
+> pluggable: registered by name, selected by config, injected uniformly, and
+> conformance-tested. A contributor registers a policy and has it verified against a
+> family contract. Selection is **fail-loud** - a missing or misnamed policy raises at
+> wiring time; the postprocessor no longer silently defaults. Two reference policies per
+> family ship (e.g. validity `strict` / `grace_window`, retrieval `default` / `recency`,
+> falsification `none` / read-time `interval_overlap`, writeback `never` / `always`).
+> The two falsifications stay distinct: write-time ingestion supersession is untouched;
+> `interval_overlap` is a read-time, side-effect-free assessor (no LLM). Dead-letters are
+> now a first-class signal (count + distinct event + honest freshness).
+> Deferred: replay/audit API (Phase 4), LLM-driven `verify_fact` (Phase 5), advanced
+> rerank (Phase 5), multi-backend (Phase 6).
 
 ## Design rule
 

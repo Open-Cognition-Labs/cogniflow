@@ -61,6 +61,23 @@ class EnqueueAck:
     reason: str = ""
 
 
+@dataclass(frozen=True, slots=True)
+class FreshnessStatus:
+    """Honest freshness for a group: last success plus how many writes were dropped.
+
+    ``failed_count > 0`` means the group is silently degraded, not idle - a reader
+    must never confuse the two. ``degraded`` is the one-glance signal.
+    """
+
+    last_ingested_at: datetime | None
+    failed_count: int
+    pending: int
+
+    @property
+    def degraded(self) -> bool:
+        return self.failed_count > 0
+
+
 @dataclass
 class _GroupChannel:
     queue: asyncio.Queue[Observation]
@@ -127,6 +144,23 @@ class WriteBackQueue:
         """Freshness surface (T3): when this group last successfully ingested, or None."""
         channel = self._channels.get(group_id)
         return channel.last_ingested_at if channel else None
+
+    def failed_count(self, group_id: str) -> int:
+        """How many writes for this group exhausted retries and were dead-lettered."""
+        channel = self._channels.get(group_id)
+        return len(channel.failed) if channel else 0
+
+    def freshness(self, group_id: str) -> FreshnessStatus:
+        """Honest freshness (D1): last success + dead-letter count + pending, so a
+        silently-degraded group is never mistaken for an idle one."""
+        channel = self._channels.get(group_id)
+        if channel is None:
+            return FreshnessStatus(last_ingested_at=None, failed_count=0, pending=0)
+        return FreshnessStatus(
+            last_ingested_at=channel.last_ingested_at,
+            failed_count=len(channel.failed),
+            pending=channel.queue.qsize(),
+        )
 
     def pending(self, group_id: str) -> int:
         channel = self._channels.get(group_id)
@@ -214,13 +248,15 @@ class WriteBackQueue:
                     )
                     await asyncio.sleep(self._retry_backoff * attempt)
                     continue
-                # Retry exhausted: defined outcome (dead-letter + event), never a crash.
+                # Retry exhausted: dead-letter. Distinct event (D1), not a normal
+                # failure, so monitoring can alert on silent data loss. Never a crash.
                 channel.failed.append(observation.id)
                 log_queue_event(
-                    "fail",
+                    "dead_letter",
                     group_id=group_id,
                     observation_id=observation.id,
                     error=type(exc).__name__,
+                    failed_total=len(channel.failed),
                 )
                 return
 

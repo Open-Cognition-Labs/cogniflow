@@ -15,7 +15,7 @@ from llama_index.core.bridge.pydantic import PrivateAttr
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.core.schema import MetadataMode, NodeWithScore, QueryBundle
 
-from ...core.policies import DefaultValidityPolicy, ValidityPolicy
+from ...core.policies import ValidityPolicy
 from ...core.types import Belief, utc_now
 
 
@@ -40,9 +40,11 @@ def _node_to_belief(node_with_score: NodeWithScore) -> Belief:
 class TemporalValidityPostprocessor(BaseNodePostprocessor):
     """Drop nodes not valid at the bound ``as_of``, using the shared ValidityPolicy.
 
-    The policy is *injected* (P1): pass the same instance the substrate uses so there
-    is one validity instance, not merely one class. If none is given it falls back to
-    a default, but the agent factory always injects ``substrate.validity``.
+    The policy is *injected and required* (P1/T2): pass the same instance the
+    substrate uses, so there is one validity instance per wiring, not merely one
+    class. There is NO silent default - a missing policy raises at construction time
+    (fail-loud), because a component quietly using the default when a custom policy
+    was intended is exactly the Phase-3 fork.
     """
 
     as_of: datetime | None = None
@@ -52,11 +54,16 @@ class TemporalValidityPostprocessor(BaseNodePostprocessor):
 
     def __init__(self, validity_policy: ValidityPolicy | None = None, **data: Any) -> None:
         super().__init__(**data)
+        if validity_policy is None:
+            raise ValueError(
+                "TemporalValidityPostprocessor requires an explicit validity_policy "
+                "(fail-loud; no silent default). Pass the substrate's validity instance."
+            )
         self._validity = validity_policy
 
     @property
     def validity(self) -> ValidityPolicy:
-        return self._validity or DefaultValidityPolicy()
+        return self._validity
 
     @classmethod
     def class_name(cls) -> str:
