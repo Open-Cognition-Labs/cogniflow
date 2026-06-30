@@ -61,3 +61,19 @@ shows latency/quality wobble.
 The temporal-correctness / invariant tests do not depend on embeddings and stay pinned to the
 hash embedder - deterministic and key-free. Real embedders are exercised only on the
 end-to-end and demo paths.
+
+## End-to-end finding: what the real embedder did and did not fix
+
+Measured on the OKF path with BGE-M3 (same MiniMax-M3 extraction LLM, controlled
+hash-vs-bge comparison):
+
+- **Retrieval (fixed):** paraphrases with near-zero lexical overlap with the stored fact
+  ("How do we count our recently engaged user base?") retrieve the right fact ranked #1.
+  Under the hash embedder (BM25-lexical only) they do not match at all. Real semantic recall
+  is the embedder's payoff.
+- **Prose-extraction floor (NOT fixed - hypothesis falsified):** the abstract definitional
+  sentence that extracted nothing in A.2 still extracts nothing under BGE-M3 (hash: 0 edges;
+  bge-m3: 0 edges). The floor is the **extraction LLM**, not the embedder - embeddings only
+  affect dedup/recall *after* the LLM proposes entities/edges. The lever for prose extraction
+  is a stronger extraction model; the deterministic path for precise temporal facts remains
+  structured input (OKF `fact` keys / triples), which works regardless of embedder.
