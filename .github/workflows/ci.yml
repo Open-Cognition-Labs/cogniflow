@@ -29,3 +29,25 @@ jobs:
         run: ruff check .
       - name: Test (contracts + conformance stub)
         run: pytest
+
+  # The headline un-knowing invariant, enforced on every PR against a real FalkorDB with NO
+  # external model key: replay to before a correction must not leak the later invalidation
+  # backward. Seeded structured data (no extraction LLM), so it is deterministic and secret-free.
+  replay-invariant:
+    runs-on: ubuntu-latest
+    services:
+      falkordb:
+        image: falkordb/falkordb:latest
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[all,dev]"
+      - name: Un-knowing invariant (live FalkorDB, no LLM key)
+        run: pytest tests/integration/test_replay_seeded.py -q

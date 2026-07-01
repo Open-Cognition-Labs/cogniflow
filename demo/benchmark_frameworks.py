@@ -21,6 +21,7 @@ Run: PYTHONPATH=src python demo/benchmark_frameworks.py
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import os
 import pathlib
@@ -59,14 +60,20 @@ PROMPT = (
 )
 
 
-def retry(fn, attempts=5):
+# Hardened backoff: a transient 429 (the shared model is hit by every system) must never be
+# scored as a capability miss. More attempts, capped backoff, so a rate-limited call recovers
+# instead of poisoning the number.
+def retry(fn, attempts=8):
     for i in range(attempts):
         try:
             return fn()
         except Exception:
             if i == attempts - 1:
                 raise
-            time.sleep(2**i)
+            time.sleep(min(2**i, 30))
+
+
+PACE_S = 1.5  # small inter-call pause to avoid bursting the shared rate limit
 
 
 # ---- LangChain (BM25 + NVIDIA ChatOpenAI) ----------------------------------
@@ -170,6 +177,19 @@ async def main() -> None:
         ("Haystack", "BM25 RAG", "sync", hs),
     ]
 
+    async def answer_clean(fn, mode, q, as_of):
+        # Retry the WHOLE cell until a real answer. A transient 429 on the shared model must
+        # NEVER be scored as a miss (that was the contaminated LangChain row). Fail loud after
+        # long backoff rather than baking an error into a published number.
+        last: Exception | None = None
+        for attempt in range(15):
+            try:
+                return (await fn(q, as_of)) if mode == "async" else fn(q)
+            except Exception as e:  # noqa: BLE001
+                last = e
+                await asyncio.sleep(min(2**attempt, 60))
+        raise RuntimeError(f"benchmark cell failed after retries: {q!r}") from last
+
     results = []
     for name, kind, mode, fn in systems:
         panels = {}
@@ -177,19 +197,29 @@ async def main() -> None:
             rows = []
             for item in qs:
                 as_of = item.get("as_of") if panel == "as_of" else None
-                try:
-                    ans = await fn(item["q"], as_of) if mode == "async" else fn(item["q"])
-                except Exception as e:
-                    ans = f"[error: {type(e).__name__}]"
+                ans = await answer_clean(fn, mode, item["q"], as_of)
                 hit = _hit(ans, item["expect"], item.get("avoid"))
                 rows.append({"q": item["q"], "expect": item["expect"], "answer": ans, "hit": hit})
+                await asyncio.sleep(PACE_S)
             panels[panel] = {"n": len(rows), "score": sum(r["hit"] for r in rows), "rows": rows}
         results.append({"name": name, "kind": kind, **panels})
         print(f"{name:32s} standard {panels['standard']['score']}/{panels['standard']['n']}   as-of {panels['as_of']['score']}/{panels['as_of']['n']}")
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps({"captured_at": datetime.now(timezone.utc).isoformat(), "systems": results}, indent=2), encoding="utf-8")
-    print("captured ->", OUT)
+    # Integrity stamp: sha256 of the systems array in canonical form (sorted keys, compact). A
+    # visitor can recompute this from the served JSON to confirm the numbers were not hand-edited,
+    # and re-run `reproduce` to regenerate them. "Reproducible" is thus verifiable, not asserted.
+    content_hash = "sha256:" + hashlib.sha256(
+        json.dumps(results, sort_keys=True, ensure_ascii=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    payload = {
+        "captured_at": datetime.now(timezone.utc).isoformat(),
+        "reproduce": "python demo/benchmark_frameworks.py",
+        "content_hash": content_hash,
+        "systems": results,
+    }
+    OUT.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    print("captured ->", OUT, content_hash)
     await backend.close()
 
 

@@ -16,6 +16,8 @@ const systems = fw.systems as unknown as Sys[];
 const n = systems[0]?.as_of.n ?? 4;
 const asofData: SysDatum[] = systems.map((s) => ({ name: displayName(s.name), score: s.as_of.score, n }));
 const stdData: SysDatum[] = systems.map((s) => ({ name: displayName(s.name), score: s.standard.score, n }));
+// Provenance stamp: makes "reproducible" verifiable, not asserted (freshness + integrity hash).
+const prov = fw as unknown as { captured_at: string; content_hash?: string; reproduce?: string };
 
 export default function BenchmarkPage() {
   return (
@@ -36,7 +38,12 @@ export default function BenchmarkPage() {
       {/* AS-OF: the headline chart */}
       <Reveal>
         <div className="ring-glow rounded-2xl border border-brand/25 bg-card p-6 elev sm:p-8">
-          <div className="mb-1 text-sm font-semibold">As-of questions — the difference</div>
+          <div className="mb-1 flex items-center gap-2 text-sm font-semibold">
+            As-of questions — the difference
+            <span className="rounded-full border border-win/30 bg-win/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-win">
+              Measured
+            </span>
+          </div>
           <p className="mb-5 text-xs text-muted-foreground">Score out of {n} on past-date questions.</p>
           <FrameworkChart data={asofData} n={n} />
         </div>
@@ -128,7 +135,12 @@ export default function BenchmarkPage() {
       {/* capability landscape */}
       <div className="mt-12">
         <Reveal>
-          <h2 className="text-section mb-2">How Cogniflow compares to the temporal-RAG field</h2>
+          <h2 className="text-section mb-2 flex flex-wrap items-center gap-2">
+            How Cogniflow compares to the temporal-RAG field
+            <span className="rounded-full border border-warn/40 bg-warn/10 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-warn">
+              Assessment · not measured
+            </span>
+          </h2>
           <p className="mb-5 max-w-[68ch] text-sm text-muted-foreground">
             A capability comparison &mdash; not a measured run. Most temporal-RAG systems retrieve
             the right facts for a given time. A <b className="text-foreground">bitemporal</b>{" "}
@@ -146,8 +158,13 @@ export default function BenchmarkPage() {
           <li>• <b className="text-foreground">Fictional corpus</b>: invented companies and cities, with dates only in metadata — so no model can answer as-of questions from training (on famous entities a large model scores well from memory; that would be a fake win).</li>
           <li>• <b className="text-foreground">The same model</b> for every system — the only difference is the memory and retrieval layer.</li>
           <li>• <b className="text-foreground">Strict as-of scoring</b>: correct only if the answer names the right past fact and not the superseded one (a hedge that lists both is not an answer).</li>
-          <li>• <b className="text-foreground">Reproducible</b>: one command re-runs every system on your own machine. Captured {String(fw.captured_at).slice(0, 10)}. No number here is fabricated.</li>
+          <li>• <b className="text-foreground">Reproducible &amp; verifiable</b>: one command re-runs every system on your own machine, and the published numbers carry an integrity hash you can recompute from the served data — not an asserted claim.</li>
         </ul>
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-secondary/30 px-4 py-3 font-mono text-[11px] text-muted-foreground">
+          <span>measured {String(prov.captured_at).slice(0, 10)}</span>
+          <span>reproduce: <span className="text-foreground">{prov.reproduce ?? "python demo/benchmark_frameworks.py"}</span></span>
+          {prov.content_hash && <span>integrity: {prov.content_hash.slice(0, 23)}…</span>}
+        </div>
       </div>
     </div>
   );

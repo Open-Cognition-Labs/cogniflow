@@ -186,6 +186,28 @@ pytest
 Phase-0 proof: the contracts are stable (field-surface is frozen by tests), a no-op
 backend passes the conformance stub, and CI is green across Python 3.10–3.12.
 
+## The invariant we enforce
+
+The headline property is the **un-knowing invariant**: replaying to a system-time *before* a
+correction returns what was believed then, and does **not** leak the later invalidation
+backward. That is the one thing a plain (or valid-time-only) RAG cannot do.
+
+It is enforced two ways, both green on **every pull request**:
+
+- **Pure** — [`tests/test_audit_replay.py`](tests/test_audit_replay.py) and
+  [`tests/test_validity_policy.py`](tests/test_validity_policy.py) assert the reconstruction and
+  as-of semantics as deterministic functions (no infra).
+- **Live** — [`tests/integration/test_replay_seeded.py`](tests/integration/test_replay_seeded.py)
+  asserts the same invariant end-to-end against a real **FalkorDB** service, with **no LLM key**
+  (structured seed, backdated `created_at`). Wired in the `replay-invariant` job of
+  [`.github/workflows/ci.yml`](.github/workflows/ci.yml). If replay ever leaks a later
+  correction into the past, CI goes red.
+
+```
+replay(2021) -> Acme HQ = Boston   (invalid_at un-known; the 2022 move not yet learned)
+replay(2023) -> Acme HQ = Denver   (the correction is now known)
+```
+
 ## License
 
 Apache-2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
