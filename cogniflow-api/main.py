@@ -234,6 +234,11 @@ async def _backend(session_id: str) -> GraphitiFalkorDBBackend:
     if sess["backend"] is None:
         c = sess["config"]
         cfg = GraphitiFalkorDBConfig.from_env(group_id=f"pg_{session_id}")
+        # The seeded Acme hero + all audit/replay + hash retrieval are KEY-FREE, but graphiti's
+        # OpenAI client requires *a* key at construction. Supply a placeholder when none is set so
+        # those paths work with no .env; a real LLM CALL (ingest extraction, /answer generation)
+        # still fails loud without a real key, so this never launders a missing credential.
+        cfg.llm_api_key = cfg.llm_api_key or "unset-key-free-audit-and-seed-only"
         cfg.embedder = c.get("embedder", DEFAULT_EMBEDDER)
         if c.get("embedder_model"):
             cfg.embedder_model = c["embedder_model"]
