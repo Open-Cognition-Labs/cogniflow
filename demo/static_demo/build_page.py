@@ -4,7 +4,7 @@
 Inlines the captured data into index.html so the page works with zero setup (double-click,
 no server). No network - it only reads the already-captured, real run. Line-length checks off:
 this module is mostly an HTML/CSS/JS markup blob, not Python.
-Run:  python demo/static_demo/build_page.py
+Run: python demo/static_demo/build_page.py
 """
 
 from __future__ import annotations
@@ -43,14 +43,14 @@ TEMPLATE = """<!doctype html>
  a{color:#7aa2ff}
 </style></head>
 <body><div class="wrap">
-<h1>Cogniflow &mdash; the RAG that knows <em>when</em></h1>
-<p class="tag">Same corpus, same model. The only difference is memory. A real captured run &mdash; not a mockup.</p>
+<h1>Cogniflow - the RAG that knows <em>when</em></h1>
+<p class="tag">Same corpus, same model. The only difference is memory. A real captured run - not a mockup.</p>
 
 <div class="card lead">
  <h2>The one thing plain RAG can't do: answer "as of"</h2>
  <div class="q" id="q"></div>
- <div class="row"><div class="k">Cogniflow &mdash; now</div><div class="a" id="now"></div></div>
- <div class="row"><div class="k">Cogniflow &mdash; as of 2015</div><div class="a" id="past"></div></div>
+ <div class="row"><div class="k">Cogniflow - now</div><div class="a" id="now"></div></div>
+ <div class="row"><div class="k">Cogniflow - as of 2015</div><div class="a" id="past"></div></div>
  <div class="row"><div class="k bad">Plain RAG</div><div class="a bad" id="plain"></div></div>
 </div>
 
@@ -61,7 +61,7 @@ TEMPLATE = """<!doctype html>
 </div>
 
 <div class="card">
- <h2>Reranker &mdash; measured on a confusable corpus, not assumed</h2>
+ <h2>Reranker - measured on a confusable corpus, not assumed</h2>
  <div class="tag" id="rr-note"></div>
  <table><thead><tr><th>configuration</th><th>top-1</th><th>MRR</th></tr></thead>
  <tbody id="rr"></tbody></table>
@@ -92,8 +92,8 @@ document.getElementById("rr").innerHTML =
   `<tr><td>+ reranker ON</td><td>${rr.on.top1}/${rr.golden_size}</td><td>${rr.on.mrr}</td></tr>`;
 const dTop1 = rr.on.top1 - rr.off.top1, dMrr = (rr.on.mrr - rr.off.mrr).toFixed(3);
 document.getElementById("rr-verdict").innerHTML = dTop1>0 || dMrr>0
-  ? `<span class="lift">Lift: top-1 +${dTop1}, MRR +${dMrr}</span> on hard indirect queries &mdash; the reranker earns its place as an opt-in quality tier (off by default for the GPU-free path).`
-  : `No lift on this corpus &mdash; the retriever already sets the ceiling; reranker stays off by default.`;
+  ? `<span class="lift">Lift: top-1 +${dTop1}, MRR +${dMrr}</span> on hard indirect queries - the reranker earns its place as an opt-in quality tier (off by default for the GPU-free path).`
+  : `No lift on this corpus - the retriever already sets the ceiling; reranker stays off by default.`;
 document.getElementById("weakq").textContent = D.weak_context.query;
 document.getElementById("weak").textContent = D.weak_context.answer;
 document.getElementById("foot").innerHTML =

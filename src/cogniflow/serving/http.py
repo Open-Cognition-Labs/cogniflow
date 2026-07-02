@@ -17,7 +17,7 @@ from ..generation import generate_answer
 try:
     from fastapi import FastAPI
     from pydantic import BaseModel, Field
-except ImportError as e:  # pragma: no cover
+except ImportError as e: # pragma: no cover
     raise RuntimeError(
         "The HTTP serving surface needs the 'serve' extra: pip install 'cogniflow-rag[serve]'"
     ) from e
@@ -25,7 +25,7 @@ except ImportError as e:  # pragma: no cover
 
 class ContextRequest(BaseModel):
     query: str
-    as_of: datetime | None = None  # first-class temporal axis (T2)
+    as_of: datetime | None = None # first-class temporal axis (T2)
     top_k: int = Field(default=5, ge=1, le=100)
     include_expired: bool = False
     filters: dict[str, Any] = Field(default_factory=dict)

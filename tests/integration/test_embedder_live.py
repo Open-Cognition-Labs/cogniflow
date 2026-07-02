@@ -32,12 +32,12 @@ requires_key = pytest.mark.skipif(
 @requires_key
 def test_bge_m3_returns_real_semantic_vectors() -> None:
     async def run() -> None:
-        embedder = create_embedder("bge-m3")  # key from env
+        embedder = create_embedder("bge-m3") # key from env
         assert isinstance(embedder, NvidiaEmbedder)
         text = "Acme Corp is headquartered in Denver"
         vec = await embedder.create(text)
         assert len(vec) == embedder.embedding_dim == 1024
-        assert any(abs(x) > 1e-9 for x in vec)  # real, non-trivial vector
+        assert any(abs(x) > 1e-9 for x in vec) # real, non-trivial vector
 
         # genuinely semantic: different from the hash embedder's vector for the same text
         hash_vec = await LocalDeterministicEmbedder(1024).create(text)

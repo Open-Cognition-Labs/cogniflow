@@ -1,4 +1,4 @@
-"""Phase-0 proof: a no-op backend passes the conformance stub."""
+"""milestone proof: a no-op backend passes the conformance stub."""
 
 from __future__ import annotations
 

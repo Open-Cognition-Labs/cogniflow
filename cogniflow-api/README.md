@@ -8,9 +8,9 @@ answer + the audit/replay ledger. Each browser session is an isolated FalkorDB g
 
 ```bash
 # from the repo root, with the venv active
-pip install -e ".[all,serve]"        # graphiti + falkordb + fastapi + multipart + ...
-# start FalkorDB (Docker):  docker run -d -p 6379:6379 falkordb/falkordb:latest
-python cogniflow-api/main.py         # serves http://127.0.0.1:8000
+pip install -e ".[all,serve]" # graphiti + falkordb + fastapi + multipart + ...
+# start FalkorDB (Docker): docker run -d -p 6379:6379 falkordb/falkordb:latest
+python cogniflow-api/main.py # serves http://127.0.0.1:8000
 ```
 
 Needs a `.env` (repo root) with `COGNIFLOW_LLM_*` and (for real semantic recall)

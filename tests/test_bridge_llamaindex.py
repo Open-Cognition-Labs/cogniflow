@@ -64,7 +64,7 @@ class _FakeSubstrate:
     def __init__(self, beliefs: list[Belief]) -> None:
         self._beliefs = beliefs
 
-    async def write(self, episode):  # pragma: no cover - not used here
+    async def write(self, episode): # pragma: no cover - not used here
         raise NotImplementedError
 
     async def read(self, query: RetrievalQuery) -> RetrievalResult:
@@ -72,7 +72,7 @@ class _FakeSubstrate:
         results = tuple(ScoredBelief(belief=b) for b in kept[: query.top_k])
         return RetrievalResult(query=query, results=results, as_of=query.as_of)
 
-    async def falsify(self, target, against=None):  # pragma: no cover - not used here
+    async def falsify(self, target, against=None): # pragma: no cover - not used here
         raise NotImplementedError
 
 
@@ -116,7 +116,7 @@ def test_postprocessor_uses_injected_policy_instance() -> None:
     policy = _AlwaysInvalid()
     pp = TemporalValidityPostprocessor(validity_policy=policy, as_of=_dt(2020))
     assert pp.validity is policy
-    assert pp.postprocess_nodes([_node(_boston())]) == []  # injected policy drops everything
+    assert pp.postprocess_nodes([_node(_boston())]) == [] # injected policy drops everything
 
 
 def test_postprocessor_requires_explicit_policy_fail_loud() -> None:

@@ -1,6 +1,6 @@
-"""cogniflow — temporal, self-falsifying belief substrate for agentic RAG.
+"""cogniflow - temporal, self-falsifying belief substrate for agentic RAG.
 
-Phase 0 exposes only the stable contracts and core types. Backends and bridges
+milestone exposes only the stable contracts and core types. Backends and bridges
 are imported explicitly from their submodules so that the top-level import stays
 dependency-free.
 """

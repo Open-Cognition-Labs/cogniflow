@@ -1,18 +1,18 @@
-"""The audit/replay dashboard surface (Slice B) - the moat made visible.
+"""The audit/replay dashboard surface - the moat made visible.
 
 A READ-ONLY window onto the belief ledger for a HUMAN (compliance/audit reader), distinct
 from the context API (A.3, which serves context to models). It exposes the four AuditLedger
 methods over HTTP and ships a dependency-free dashboard that renders:
 
-  - current beliefs (what the system holds true now),
-  - the event-time axis ("what was TRUE as of T" - the recognizable March=7-day/June=28-day),
-  - the system-time replay ("what the system KNEW as of S") - the centerpiece, which must
+ - current beliefs (what the system holds true now),
+ - the event-time axis ("what was TRUE as of T" - the recognizable March=7-day/June=28-day),
+ - the system-time replay ("what the system KNEW as of S") - the centerpiece, which must
     render the un-knowing correctly: scrubbed to before a supersession, a fact reads
     believed-then and un-superseded, NOT with its current invalid_at. The engine un-knows
     (system_time_replay -> reconstruct_as_of_system); this layer must only faithfully render
     what the engine returns and never recompute intervals client-side, or it re-leaks
     present knowledge into the past.
-  - provenance, with human-readable names resolved from stored linkage (UUID shown, never
+ - provenance, with human-readable names resolved from stored linkage (UUID shown, never
     guessed, when a name is unavailable).
 
 Read-only by construction: no write verb is exposed. Behind the ``[serve]`` extra,
@@ -31,7 +31,7 @@ from ._dashboard import DASHBOARD_HTML
 try:
     from fastapi import FastAPI, HTTPException, Query
     from fastapi.responses import HTMLResponse
-except ImportError as e:  # pragma: no cover
+except ImportError as e: # pragma: no cover
     raise RuntimeError(
         "The audit dashboard needs the 'serve' extra: pip install 'cogniflow-rag[serve]'"
     ) from e
@@ -53,10 +53,10 @@ def serialize_belief(belief: Belief, names: dict[str, str]) -> dict[str, Any]:
         "belief_id": belief.id,
         "statement": belief.statement,
         "valid_at": _iso(belief.valid_at),
-        "invalid_at": _iso(belief.invalid_at),  # rendered verbatim; replay already un-knew it
+        "invalid_at": _iso(belief.invalid_at), # rendered verbatim; replay already un-knew it
         "expired_at": _iso(belief.expired_at),
         "created_at": _iso(belief.created_at),
-        "valid_at_source": _normalize_source(raw),  # T3/#6: confidence visible to the human
+        "valid_at_source": _normalize_source(raw), # T3/#6: confidence visible to the human
         "valid_at_source_raw": raw,
         "superseded_by": belief.metadata.get("superseded_by"),
         "provenance": [_resolve_one(u, names) for u in belief.provenance],

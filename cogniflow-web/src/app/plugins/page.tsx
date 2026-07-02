@@ -85,7 +85,7 @@ export default function PluginsPage() {
         <h1 className="text-hero mb-3 !text-[clamp(2rem,4vw,3rem)]">Every layer is a plug.</h1>
         <p className="text-subhead mb-8 max-w-[62ch]">
           The infrastructure is ours; the providers are yours. Embedder, reranker, generation
-          model, and graph backend are each config-selected and fail-loud &mdash; pick one,
+          model, and graph backend are each config-selected and fail-loud - pick one,
           bring a custom endpoint, or point at a local model. Nothing is hard-wired.
         </p>
       </Reveal>
@@ -127,7 +127,7 @@ export default function PluginsPage() {
         </Reveal>
 
         <Reveal delay={0.1}>
-          <Layer icon={<Cpu className="size-4" />} title="Generation model" desc="Answers from the served context. Model-agnostic — swap it live." live>
+          <Layer icon={<Cpu className="size-4" />} title="Generation model" desc="Answers from the served context. Model-agnostic - swap it live." live>
             <LabeledChips
               options={[
                 { label: "Platform default", value: "managed" },
@@ -142,7 +142,7 @@ export default function PluginsPage() {
             </button>
             {gCustom && (
               <div className="mt-3 space-y-2 rounded-lg border border-border bg-secondary/40 p-3">
-                <p className="text-xs text-muted-foreground">Any OpenAI-compatible chat endpoint (hosted or local — vLLM, Ollama, LM Studio).</p>
+                <p className="text-xs text-muted-foreground">Any OpenAI-compatible chat endpoint (hosted or local - vLLM, Ollama, LM Studio).</p>
                 <Input placeholder="base URL (http://localhost:11434/v1)" value={gBase} onChange={(e) => setGBase(e.target.value)} className="h-8" />
                 <Input placeholder="model id (e.g. llama3.1:8b)" value={gModel} onChange={(e) => setGModel(e.target.value)} className="h-8" />
                 <Input placeholder="API key (blank for local)" value={gKey} onChange={(e) => setGKey(e.target.value)} className="h-8" type="password" />
@@ -164,7 +164,7 @@ export default function PluginsPage() {
           <button onClick={save} disabled={saving || down} className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-40">
             {saving ? <Loader2 className="size-4 animate-spin" /> : "Save plugin configuration"}
           </button>
-          <span className="text-xs text-muted-foreground">Applies to your playground session. Fail-loud: a missing key or unknown name raises — never a silent fallback.</span>
+          <span className="text-xs text-muted-foreground">Applies to your playground session. Fail-loud: a missing key or unknown name raises - never a silent fallback.</span>
         </div>
       </Reveal>
     </div>
@@ -184,7 +184,7 @@ function Layer({ icon, title, desc, live, children }: { icon: React.ReactNode; t
   );
 }
 
-// Display labels keep the provider out of the UI — the infrastructure is ours, the endpoint is a
+// Display labels keep the provider out of the UI - the infrastructure is ours, the endpoint is a
 // plug. Values sent to the backend are unchanged.
 const PRESET_LABELS: Record<string, string> = {
   hash: "hash (dev)",

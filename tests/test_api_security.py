@@ -1,4 +1,4 @@
-"""Phase 4 baseline security: bearer-token auth, token-scoped access, rate limits, upload caps,
+"""milestone baseline security: bearer-token auth, token-scoped access, rate limits, upload caps,
 fail-loud misconfiguration. Exercises the Playground API with FastAPI's TestClient. None of these
 need a running FalkorDB (every security check rejects BEFORE the backend is built) or an LLM.
 """
@@ -61,7 +61,7 @@ def test_scoped_access_closes_the_day_one_hole(secured) -> None:
     # THE day-one vulnerability: a caller must NOT read or wipe a group it doesn't own.
     secured._AUTH_TOKENS = {"secret", "other"}
     c = TestClient(secured.app)
-    sid = c.post("/api/session", headers=_H).json()["session_id"]  # owned by "secret"
+    sid = c.post("/api/session", headers=_H).json()["session_id"] # owned by "secret"
     other = {"Authorization": "Bearer other"}
     assert c.post(f"/api/reset?session_id={sid}", headers=other).status_code == 403
     assert c.get(f"/api/audit/current?session_id={sid}", headers=other).status_code == 403
@@ -110,7 +110,7 @@ def test_safe_config_redacts_secrets(secured) -> None:
     safe = secured._safe_config(
         {"embedder": "bge-m3", "embedder_api_key": "sk-secret", "gen": {"api_key": "x"}}
     )
-    assert safe["embedder_api_key"] == "***"  # never echo a provider key
+    assert safe["embedder_api_key"] == "***" # never echo a provider key
     assert safe["embedder"] == "bge-m3"
     assert "gen" not in safe
 

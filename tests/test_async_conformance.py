@@ -1,4 +1,4 @@
-"""Phase-1 gate: the async conformance driver awaits an async backend, and the two
+"""milestone gate: the async conformance driver awaits an async backend, and the two
 drivers refuse the wrong async-ness. This closes review finding #1 (a sync-only
 harness that would falsely bless an async backend).
 """
@@ -31,15 +31,15 @@ def test_runtime_checkable_false_positive_is_guarded() -> None:
     # runtime_checkable checks method NAMES only, so an async backend wrongly
     # satisfies the *sync* Substrate protocol. That is the trap; the sync harness
     # must refuse it rather than silently producing un-awaited coroutines.
-    assert isinstance(AsyncNoOpBackend(), Substrate)  # the false positive
+    assert isinstance(AsyncNoOpBackend(), Substrate) # the false positive
     with pytest.raises(TypeError):
-        run_conformance(AsyncNoOpBackend())  # the guard catches it
+        run_conformance(AsyncNoOpBackend()) # the guard catches it
 
 
 def test_async_harness_refuses_sync_backend() -> None:
     # Symmetric guard: a sync backend also matches AsyncSubstrate by name, but its
     # write() is not awaitable, so the async harness must refuse it.
-    assert isinstance(NoOpBackend(), AsyncSubstrate)  # the symmetric false positive
+    assert isinstance(NoOpBackend(), AsyncSubstrate) # the symmetric false positive
     with pytest.raises(TypeError):
         asyncio.run(run_conformance_async(NoOpBackend()))
 

@@ -3,7 +3,7 @@
 No infra needed: this shows how config picks an implementation per family, and how
 the same belief is judged differently under two validity policies selected by name.
 
-Run:  python examples/policy_config.py
+Run: python examples/policy_config.py
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from cogniflow.core.types import Belief
 
 # A config a deployment might load from YAML/env. Omitted families use named defaults.
 CONFIG = {
-    "validity": "grace_window",   # try "strict" to change behavior with no code edit
+    "validity": "grace_window", # try "strict" to change behavior with no code edit
     "retrieval": "recency",
     "falsification": "interval_overlap",
     "writeback": "never",
@@ -27,7 +27,7 @@ def main() -> None:
     policies = build_policies(CONFIG, PARAMS)
     print("selected policies:")
     for family, policy in policies.items():
-        print(f"  {family:14s} -> {type(policy).__name__}")
+        print(f" {family:14s} -> {type(policy).__name__}")
 
     # A fact that was true 2019..2022, asked exactly at its invalid_at.
     fact = Belief(
@@ -42,7 +42,7 @@ def main() -> None:
 
     strict = create_policy("validity", "strict")
     grace = policies["validity"]
-    print(f"\nat as_of={as_of.date()}  strict.valid={strict.is_valid(fact, as_of)} "
+    print(f"\nat as_of={as_of.date()} strict.valid={strict.is_valid(fact, as_of)} "
           f"grace_window.valid={grace.is_valid(fact, as_of)}")
 
 

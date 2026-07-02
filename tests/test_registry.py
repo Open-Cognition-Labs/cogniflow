@@ -40,7 +40,7 @@ def test_create_unknown_family_fails_loud() -> None:
 
 
 def test_build_policies_uses_named_defaults() -> None:
-    policies = build_policies()  # no config -> the named defaults
+    policies = build_policies() # no config -> the named defaults
     assert set(policies) == set(FAMILIES)
     assert type(policies["validity"]).__name__ == "DefaultValidityPolicy"
     assert type(policies["writeback"]).__name__ == "NeverWritebackPolicy"
@@ -56,7 +56,7 @@ def test_config_selects_policy_and_behavior_changes_no_code_edit() -> None:
         invalid_at=_dt(2022),
         expired_at=_dt(2022),
     )
-    as_of = _dt(2022)  # exactly at invalid_at: strict excludes, grace still includes
+    as_of = _dt(2022) # exactly at invalid_at: strict excludes, grace still includes
 
     strict = build_policies({"validity": "strict"})["validity"]
     grace = build_policies(

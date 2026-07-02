@@ -23,15 +23,15 @@ export default function BenchmarkPage() {
   return (
     <div className="mx-auto max-w-6xl px-5 py-12">
       <Reveal>
-        <p className="eyebrow mb-3">Real benchmark — every number from a live run</p>
+        <p className="eyebrow mb-3">Real benchmark - every number from a live run</p>
         <h1 className="text-hero mb-3 !text-[clamp(2rem,4vw,3rem)]">
           The same question, asked about the past.
         </h1>
         <p className="text-subhead mb-8 max-w-[68ch]">
-          Every system runs on the same fictional corpus with the same model &mdash; only the
+          Every system runs on the same fictional corpus with the same model - only the
           memory layer differs. On current facts they tie; that&rsquo;s table stakes. The
           difference is <b>as-of</b> questions: what was true at a past date. On this benchmark,
-          on these questions, only Cogniflow answers them correctly &mdash; the claim is exactly
+          on these questions, only Cogniflow answers them correctly - the claim is exactly
           the size of the measurement.
         </p>
       </Reveal>
@@ -40,7 +40,7 @@ export default function BenchmarkPage() {
       <Reveal>
         <div className="ring-glow rounded-2xl border border-brand/25 bg-card p-6 elev sm:p-8">
           <div className="mb-1 flex items-center gap-2 text-sm font-semibold">
-            As-of questions — the difference
+            As-of questions - the difference
             <span className="rounded-full border border-win/30 bg-win/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-win">
               Measured
             </span>
@@ -55,7 +55,7 @@ export default function BenchmarkPage() {
         <Reveal>
           <div className="rounded-2xl border border-border bg-card p-6 elev">
             <div className="mb-1 text-sm font-semibold">Current-fact questions</div>
-            <p className="mb-5 text-xs text-muted-foreground">Stable facts &mdash; everyone can do this.</p>
+            <p className="mb-5 text-xs text-muted-foreground">Stable facts - everyone can do this.</p>
             <FrameworkChart data={stdData} n={n} />
           </div>
         </Reveal>
@@ -96,7 +96,7 @@ export default function BenchmarkPage() {
         <Reveal>
           <h2 className="text-section mb-2">The actual answers</h2>
           <p className="mb-5 text-sm text-muted-foreground">
-            No cherry-picking &mdash; every system&rsquo;s real output on the past-date questions.
+            No cherry-picking - every system&rsquo;s real output on the past-date questions.
           </p>
         </Reveal>
         <div className="space-y-3">
@@ -143,7 +143,7 @@ export default function BenchmarkPage() {
             </span>
           </h2>
           <p className="mb-5 max-w-[68ch] text-sm text-muted-foreground">
-            A capability comparison &mdash; not a measured run. Most temporal-RAG systems retrieve
+            A capability comparison - not a measured run. Most temporal-RAG systems retrieve
             the right facts for a given time. A <b className="text-foreground">bitemporal</b>{" "}
             platform also separates when a fact was true from when it was learned, replays past
             beliefs, tracks falsification when facts are corrected, and audits provenance.
@@ -154,12 +154,12 @@ export default function BenchmarkPage() {
 
       {/* methodology */}
       <div className="section-box mt-12 p-7">
-        <h2 className="text-headline mb-3">Methodology — why you can trust these numbers</h2>
+        <h2 className="text-headline mb-3">Methodology - why you can trust these numbers</h2>
         <ul className="space-y-2 text-sm text-muted-foreground">
-          <li>• <b className="text-foreground">Fictional corpus</b>: invented companies and cities, with dates only in metadata — so no model can answer as-of questions from training (on famous entities a large model scores well from memory; that would be a fake win).</li>
-          <li>• <b className="text-foreground">The same model</b> for every system — the only difference is the memory and retrieval layer.</li>
+          <li>• <b className="text-foreground">Fictional corpus</b>: invented companies and cities, with dates only in metadata - so no model can answer as-of questions from training (on famous entities a large model scores well from memory; that would be a fake win).</li>
+          <li>• <b className="text-foreground">The same model</b> for every system - the only difference is the memory and retrieval layer.</li>
           <li>• <b className="text-foreground">Strict as-of scoring</b>: correct only if the answer names the right past fact and not the superseded one (a hedge that lists both is not an answer).</li>
-          <li>• <b className="text-foreground">Reproducible &amp; verifiable</b>: one command re-runs every system on your own machine, and the published numbers carry an integrity hash you can recompute from the served data — not an asserted claim.</li>
+          <li>• <b className="text-foreground">Reproducible &amp; verifiable</b>: one command re-runs every system on your own machine, and the published numbers carry an integrity hash you can recompute from the served data - not an asserted claim.</li>
         </ul>
         <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-secondary/30 px-4 py-3 font-mono text-[11px] text-muted-foreground">
           <span>measured {String(prov.captured_at).slice(0, 10)}</span>

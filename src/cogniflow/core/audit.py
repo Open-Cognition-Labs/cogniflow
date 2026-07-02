@@ -3,7 +3,7 @@ read-only surface.
 
 Two orthogonal questions:
 
-- event-time: "what was TRUE IN THE WORLD at T?"  -> valid_at / invalid_at
+- event-time: "what was TRUE IN THE WORLD at T?" -> valid_at / invalid_at
 - system-time: "what did the SYSTEM BELIEVE at S, and why?" -> created_at / expired_at
 
 The centerpiece is the *un-knowing* invariant. Graphiti stamps ``invalid_at``
@@ -74,9 +74,9 @@ def reconstruct_as_of_system(belief: Belief, system_time: datetime) -> Belief:
     """
     expired = belief.expired_at
     if expired is not None and expired <= system_time:
-        return belief  # the invalidation was already known at S - keep it
+        return belief # the invalidation was already known at S - keep it
     if belief.invalid_at is None and belief.expired_at is None:
-        return belief  # nothing to un-know
+        return belief # nothing to un-know
     return dataclasses.replace(belief, invalid_at=None, expired_at=None)
 
 

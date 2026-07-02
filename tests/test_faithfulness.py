@@ -62,7 +62,7 @@ def test_decompose_splits_and_strips_citations() -> None:
         "Source: annual_report_2010#chunk0"
     )
     claims = decompose(answer)
-    assert len(claims) == 1  # the source-only line is dropped; the citation tail stripped
+    assert len(claims) == 1 # the source-only line is dropped; the citation tail stripped
     assert "Palo Alto" in claims[0] and "[" not in claims[0]
 
 
@@ -79,8 +79,8 @@ def test_planted_hallucination_is_caught() -> None:
         "Tesla also employs five thousand robotics engineers in Berlin."
     )
     assert r.status == "unsupported_claims"
-    assert any("Berlin" in c for c in r.unsupported_claims)  # the planted claim, flagged
-    assert not any("Palo Alto" in c for c in r.unsupported_claims)  # the grounded one, not
+    assert any("Berlin" in c for c in r.unsupported_claims) # the planted claim, flagged
+    assert not any("Palo Alto" in c for c in r.unsupported_claims) # the grounded one, not
 
 
 def test_as_of_leak_is_caught_mechanically() -> None:
@@ -94,7 +94,7 @@ def test_as_of_leak_is_caught_mechanically() -> None:
 
 def test_refusal_is_no_checkable_claims_not_a_pass() -> None:
     r = _check("I do not have that information in the context facts.")
-    assert r.status == "no_checkable_claims"  # honest: not 'grounded'
+    assert r.status == "no_checkable_claims" # honest: not 'grounded'
 
 
 # ---- the fail-loud plug ---------------------------------------------------------------------
@@ -102,13 +102,13 @@ def test_unknown_checker_fails_loud() -> None:
     with pytest.raises(FaithfulnessError):
         create_checker("made-up-checker")
     with pytest.raises(FaithfulnessError):
-        create_checker("llm-judge")  # no generator -> raise, never a silent no-op
+        create_checker("llm-judge") # no generator -> raise, never a silent no-op
     assert available_checkers() == ["lexical", "llm-judge", "off"]
 
 
 def test_off_is_visibly_off() -> None:
     r = asyncio.run(create_checker("off").check("anything", PALO_ALTO))
-    assert r.status == "unchecked"  # off never looks like grounded
+    assert r.status == "unchecked" # off never looks like grounded
 
 
 def test_llm_judge_parses_verdicts() -> None:
@@ -136,33 +136,33 @@ class _FakeSubstrate:
             query=query, results=(ScoredBelief(belief=b, score=0.9),), as_of=query.as_of
         )
 
-    async def write(self, episode):  # pragma: no cover
+    async def write(self, episode): # pragma: no cover
         raise NotImplementedError
 
-    async def falsify(self, target, against=None) -> FalsificationVerdict:  # pragma: no cover
+    async def falsify(self, target, against=None) -> FalsificationVerdict: # pragma: no cover
         return FalsificationVerdict(target_id=str(target), superseded=False)
 
 
 def _leaky_generator(prompt: str) -> str:
-    return "Tesla is headquartered in Austin."  # ignores the served context (training leak)
+    return "Tesla is headquartered in Austin." # ignores the served context (training leak)
 
 
 def test_generate_answer_flags_but_ships_by_default() -> None:
     res = asyncio.run(generate_answer(_FakeSubstrate(), "Where is Tesla HQ?", _leaky_generator))
-    assert res.answer == "Tesla is headquartered in Austin."  # flag mode: untouched...
+    assert res.answer == "Tesla is headquartered in Austin." # flag mode: untouched...
     assert res.faithfulness is not None
-    assert res.faithfulness.status == "unsupported_claims"  # ...but loudly flagged
+    assert res.faithfulness.status == "unsupported_claims" # ...but loudly flagged
     d = res.to_dict()
-    assert d["faithfulness"]["unsupported_claims"]  # the response contract carries it
+    assert d["faithfulness"]["unsupported_claims"] # the response contract carries it
 
 
 def test_generate_answer_strict_declines() -> None:
     res = asyncio.run(generate_answer(
         _FakeSubstrate(), "Where is Tesla HQ?", _leaky_generator, faithfulness_mode="strict"
     ))
-    assert "Austin" not in res.answer  # never silently shipped
+    assert "Austin" not in res.answer # never silently shipped
     assert "cannot provide" in res.answer.lower()
-    assert res.faithfulness.status == "unsupported_claims"  # the report says exactly why
+    assert res.faithfulness.status == "unsupported_claims" # the report says exactly why
 
 
 def test_generate_answer_bad_mode_fails_loud() -> None:

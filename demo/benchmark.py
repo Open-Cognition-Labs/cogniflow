@@ -14,7 +14,7 @@ on facts the model has never seen - i.e. YOUR private/enterprise data - so we be
 Dates live ONLY in metadata (valid_at), never in the fact text, so plain RAG genuinely cannot
 recover the past. The honesty about Panel 1 is what makes Panel 2 credible. Writes benchmark_data.json.
 Prereqs: FalkorDB, .env with COGNIFLOW_LLM_* and COGNIFLOW_EMBEDDER_API_KEY.
-Run:  PYTHONPATH=src python demo/benchmark.py
+Run: PYTHONPATH=src python demo/benchmark.py
 """
 
 from __future__ import annotations
@@ -106,12 +106,12 @@ _MOVES = [
     ("harwick_old", "Harwick Instruments", "Elmsworth", 2010),
     ("ironvale_old", "Ironvale Mining", "Fernbeck", 2012),
     ("kestrel_old", "Kestrel Avionics", "Glenmoor", 2011),
-    ("gantry_mid", "Gantry Textiles", "Stonewick", 2015),   # hop 1 of the chain
+    ("gantry_mid", "Gantry Textiles", "Stonewick", 2015), # hop 1 of the chain
     ("kestrel_new", "Kestrel Avionics", "Hollowbrent", 2018),
     ("orinoco_new", "Orinoco Labs", "Kingsford", 2019),
     ("meridian_new", "Meridian Systems", "Newhaven", 2020),
     ("ironvale_new", "Ironvale Mining", "Ivorlan", 2020),
-    ("gantry_new", "Gantry Textiles", "Wrenfield", 2021),   # hop 2 of the chain
+    ("gantry_new", "Gantry Textiles", "Wrenfield", 2021), # hop 2 of the chain
     ("harwick_new", "Harwick Instruments", "Dunmarsh", 2022),
 ]
 # olds before news so supersession runs in write order
@@ -223,7 +223,7 @@ async def main() -> None:
     for name in ("standard", "as_of"):
         p = panels[name]
         label = "STANDARD (stable facts)" if name == "standard" else "AS-OF (past dates)"
-        print(f"{label}: plain RAG {p['plain_score']}/{p['n']}   Cogniflow {p['cogniflow_score']}/{p['n']}")
+        print(f"{label}: plain RAG {p['plain_score']}/{p['n']} Cogniflow {p['cogniflow_score']}/{p['n']}")
     print("=" * 74)
     print(f"captured -> {OUT}")
     await backend.close()

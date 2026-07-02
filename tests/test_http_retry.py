@@ -25,7 +25,7 @@ def _http_error(code: int) -> urllib.error.HTTPError:
 
 
 def test_retries_then_succeeds_on_429(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("time.sleep", lambda _s: None)  # no real backoff wait
+    monkeypatch.setattr("time.sleep", lambda _s: None) # no real backoff wait
     calls = {"n": 0}
 
     def fake_urlopen(req, timeout):
@@ -36,7 +36,7 @@ def test_retries_then_succeeds_on_429(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
     assert _urlopen_json(object(), 10, attempts=5) == {"ok": True}
-    assert calls["n"] == 3  # failed twice, succeeded on the third
+    assert calls["n"] == 3 # failed twice, succeeded on the third
 
 
 def test_non_retryable_status_raises_immediately(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -45,12 +45,12 @@ def test_non_retryable_status_raises_immediately(monkeypatch: pytest.MonkeyPatch
 
     def fake_urlopen(req, timeout):
         calls["n"] += 1
-        raise _http_error(400)  # a client error is not transient - do not retry
+        raise _http_error(400) # a client error is not transient - do not retry
 
     monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
     with pytest.raises(urllib.error.HTTPError):
         _urlopen_json(object(), 10, attempts=5)
-    assert calls["n"] == 1  # tried once, no retry
+    assert calls["n"] == 1 # tried once, no retry
 
 
 def test_gives_up_after_attempts(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -64,4 +64,4 @@ def test_gives_up_after_attempts(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
     with pytest.raises(urllib.error.HTTPError):
         _urlopen_json(object(), 10, attempts=3)
-    assert calls["n"] == 3  # exhausted all attempts, then raised
+    assert calls["n"] == 3 # exhausted all attempts, then raised

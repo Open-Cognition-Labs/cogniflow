@@ -1,4 +1,4 @@
-"""Slice A integration: OKF v1->v2 ingestion supersedes the old concept (both-stamps),
+"""module integration: OKF v1->v2 ingestion supersedes the old concept (both-stamps),
 and the straight temporal-RAG loop replays as-of any date. Live FalkorDB + LLM; skipped
 without them.
 """
@@ -68,8 +68,8 @@ def test_okf_cross_version_supersession_and_replay() -> None:
         await backend.setup()
         llm = make_llm(backend.config)
         try:
-            await ingest_bundle(backend, BUNDLE / "v1")  # March: 7-day
-            receipts_v2 = await ingest_bundle(backend, BUNDLE / "v2")  # June: 28-day
+            await ingest_bundle(backend, BUNDLE / "v1") # March: 7-day
+            receipts_v2 = await ingest_bundle(backend, BUNDLE / "v2") # June: 28-day
 
             # acceptance #3: the superseded concept carries BOTH stamps, via OKF ingestion
             invalidated = [i for r in receipts_v2 for i in r.invalidated_belief_ids]

@@ -1,4 +1,4 @@
-"""Freeze the public contract surface. If a field set changes, this test fails —
+"""Freeze the public contract surface. If a field set changes, this test fails - 
 forcing a deliberate, reviewed decision rather than silent contract drift.
 """
 

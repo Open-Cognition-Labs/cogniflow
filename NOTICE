@@ -8,9 +8,9 @@ file for the full text.
 ------------------------------------------------------------------------------
 Third-party components (declared as optional dependencies, not bundled):
 
-  - graphiti-core   — Apache License 2.0   (Zep AI, Inc.)
-  - llama-index-core — MIT License          (LlamaIndex, Inc.)
-  - falkordb        — MIT License           (FalkorDB Ltd.)
+ - graphiti-core - Apache License 2.0 (Zep AI, Inc.)
+ - llama-index-core - MIT License (LlamaIndex, Inc.)
+ - falkordb - MIT License (FalkorDB Ltd.)
 
 These are pulled in only when the corresponding optional extras are installed.
 The cogniflow core package imports none of them; it defines framework-neutral

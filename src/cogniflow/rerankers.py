@@ -105,7 +105,7 @@ class BgeLocalReranker:
     VPC wedge. Not exercised in the CI/build env here (torch/model weights); the interface
     and seam are in place and a real API cross-encoder measures the lift."""
 
-    def __init__(self, model: str = "BAAI/bge-reranker-v2-m3") -> None:  # pragma: no cover
+    def __init__(self, model: str = "BAAI/bge-reranker-v2-m3") -> None: # pragma: no cover
         try:
             from FlagEmbedding import FlagReranker
         except ImportError as e:
@@ -116,7 +116,7 @@ class BgeLocalReranker:
         self.model = model
         self._reranker = FlagReranker(model, use_fp16=True)
 
-    def score(self, query: str, passages: list[str]) -> list[float]:  # pragma: no cover
+    def score(self, query: str, passages: list[str]) -> list[float]: # pragma: no cover
         if not passages:
             return []
         return [float(s) for s in self._reranker.compute_score([[query, p] for p in passages])]
@@ -180,7 +180,7 @@ class RerankerRetrievalPolicy:
             reranker, api_key=api_key, model=model, base_url=base_url
         )
 
-    def resolve_as_of(self, query: RetrievalQuery):  # noqa: ANN201 - mirrors the protocol
+    def resolve_as_of(self, query: RetrievalQuery): # noqa: ANN201 - mirrors the protocol
         return query.as_of
 
     def rank(self, query: RetrievalQuery, beliefs: Sequence[Belief]) -> Sequence[ScoredBelief]:

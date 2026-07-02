@@ -125,7 +125,7 @@ class JsonFileJournal:
 
 
 class RedisJournal:
-    """The SHARED durable journal (F5): pending observations in one Redis hash (id -> json),
+    """The SHARED durable journal : pending observations in one Redis hash (id -> json),
     so "queued" survives process death AND is visible to every replica's ``recover()`` - the
     documented production swap for ``JsonFileJournal``, behind the same Protocol.
 
@@ -143,13 +143,13 @@ class RedisJournal:
     ) -> None:
         try:
             import redis
-        except ImportError as e:  # pragma: no cover - redis ships with the [backends] extra
+        except ImportError as e: # pragma: no cover - redis ships with the [backends] extra
             raise RuntimeError(
                 "RedisJournal needs the 'redis' package (installed with the [backends] extra)."
             ) from e
         self._r = redis.Redis(host=host, port=port, decode_responses=True)
         self._key = key
-        self._r.ping()  # fail loud NOW, not on the first lost observation
+        self._r.ping() # fail loud NOW, not on the first lost observation
 
     def append(self, obs: Observation) -> None:
         self._r.hset(self._key, obs.id, json.dumps(_obs_to_dict(obs)))
@@ -166,7 +166,7 @@ class EnqueueAck:
     """Returned immediately by ``enqueue`` - an acknowledgement, not a WriteReceipt."""
 
     observation_id: str
-    status: str  # "queued" | "rejected"
+    status: str # "queued" | "rejected"
     reason: str = ""
 
 
@@ -223,7 +223,7 @@ class WriteBackQueue:
             return 0
         pending = self._journal.load()
         for obs in pending:
-            self.enqueue(obs, _journal=False)  # already journaled
+            self.enqueue(obs, _journal=False) # already journaled
         return len(pending)
 
     # --- public API --------------------------------------------------------------
@@ -249,7 +249,7 @@ class WriteBackQueue:
             )
             return EnqueueAck(observation.id, "rejected", "saturated")
         if _journal and self._journal is not None:
-            self._journal.append(observation)  # durable: survives restart until acked
+            self._journal.append(observation) # durable: survives restart until acked
         log_queue_event(
             "enqueue",
             group_id=observation.group_id,
@@ -338,7 +338,7 @@ class WriteBackQueue:
         if observation.triple is not None:
             metadata["triple"] = observation.triple
         episode = Episode(
-            id=observation.id,  # stable idempotency key -> dedup collapses retries
+            id=observation.id, # stable idempotency key -> dedup collapses retries
             content=observation.statement,
             reference_time=observation.reference_time or utc_now(),
             source="text",
@@ -353,7 +353,7 @@ class WriteBackQueue:
                 receipt = await backend.write(episode)
                 channel.last_ingested_at = utc_now()
                 if self._journal is not None:
-                    self._journal.remove(observation.id)  # acknowledged -> durable record cleared
+                    self._journal.remove(observation.id) # acknowledged -> durable record cleared
                 log_queue_event(
                     "success",
                     group_id=group_id,
@@ -362,7 +362,7 @@ class WriteBackQueue:
                     invalidated=len(receipt.invalidated_belief_ids),
                 )
                 return
-            except Exception as exc:  # noqa: BLE001 - queue must not crash on any backend error
+            except Exception as exc: # noqa: BLE001 - queue must not crash on any backend error
                 if attempt < self._max_retries:
                     log_queue_event(
                         "retry",
@@ -377,7 +377,7 @@ class WriteBackQueue:
                 # failure, so monitoring can alert on silent data loss. Never a crash.
                 channel.failed.append(observation.id)
                 if self._journal is not None:
-                    self._journal.remove(observation.id)  # dead-lettered; recorded in failed[]
+                    self._journal.remove(observation.id) # dead-lettered; recorded in failed[]
                 log_queue_event(
                     "dead_letter",
                     group_id=group_id,

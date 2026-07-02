@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "cogniflow-rag"
 version = "0.1.0"
-description = "Temporal self-falsifying belief substrate for agentic RAG (ChronoRAG × PALIMPSEST)."
+description = "Bi-temporal RAG platform: cited, temporally-correct answers plus system-time replay. Self-hostable memory and audit layer for AI agents."
 readme = "README.md"
 requires-python = ">=3.10,<4"
 license = { text = "Apache-2.0" }
@@ -18,7 +18,7 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Development Status :: 2 - Pre-Alpha",
 ]
-# Phase 0: the CORE contracts are dependency-free by design (stdlib only).
+# milestone: the CORE contracts are dependency-free by design (stdlib only).
 # Backends/bridges pull heavy deps only when explicitly installed.
 dependencies = []
 
@@ -34,8 +34,8 @@ documents = ["pypdf>=4,<6"]
 mineru = ["mineru"]
 serve = ["fastapi>=0.110,<1", "uvicorn>=0.27,<1", "python-multipart>=0.0.9"]
 mcp = ["mcp>=1,<2"]
-reranker = ["FlagEmbedding>=1.2"]  # self-hosted bge-reranker-v2-m3 (pulls torch); opt-in
-embeddings = ["FlagEmbedding>=1.2"]  # key-free local bge-m3 embedder (pulls torch); opt-in
+reranker = ["FlagEmbedding>=1.2"] # self-hosted bge-reranker-v2-m3 (pulls torch); opt-in
+embeddings = ["FlagEmbedding>=1.2"] # key-free local bge-m3 embedder (pulls torch); opt-in
 backends = ["graphiti-core==0.29.2", "falkordb>=1.0.10,<2"]
 all = [
   "graphiti-core==0.29.2",

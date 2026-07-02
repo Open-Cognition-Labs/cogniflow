@@ -36,7 +36,7 @@ def _urlopen_json(req: urllib.request.Request, timeout: float, attempts: int = 6
                 return json.loads(resp.read())
         except urllib.error.HTTPError as e:
             if e.code in _RETRY_STATUS and attempt < attempts - 1:
-                time.sleep(2**attempt)  # 1s, 2s, 4s
+                time.sleep(2**attempt) # 1s, 2s, 4s
                 continue
             raise
 

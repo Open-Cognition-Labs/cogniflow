@@ -1,4 +1,4 @@
-"""Document ingestion - the second front door (Slice A.2).
+"""Document ingestion - the second front door .
 
 Any document (text, markdown, PDF) -> parse -> structure-preserving chunks -> Episodes
 -> the existing substrate ``write`` path -> temporal store. Identical boundary to OKF;
@@ -39,7 +39,7 @@ class DocBlock:
     """A structural unit of a parsed document. ``kind`` guides chunking (a table is
     never split; a heading attaches to the following block)."""
 
-    kind: str  # "heading" | "paragraph" | "table" | "text"
+    kind: str # "heading" | "paragraph" | "table" | "text"
     text: str
 
 
@@ -96,7 +96,7 @@ class PdfParser:
     def parse(self, path: str | Path) -> list[DocBlock]:
         try:
             from pypdf import PdfReader
-        except ImportError as e:  # pragma: no cover
+        except ImportError as e: # pragma: no cover
             raise RuntimeError(
                 "PDF ingestion needs the 'documents' extra: pip install 'cogniflow-rag[documents]'"
             ) from e
@@ -115,7 +115,7 @@ class MinerUParser:
     framework. (Wired as the documented production upgrade; pypdf is the default.)
     """
 
-    def parse(self, path: str | Path) -> list[DocBlock]:  # pragma: no cover - heavy optional
+    def parse(self, path: str | Path) -> list[DocBlock]: # pragma: no cover - heavy optional
         try:
             import mineru  # noqa: F401
         except ImportError as e:
@@ -133,15 +133,15 @@ def get_parser(path: str | Path) -> DocumentParser:
     suffix = Path(path).suffix.lower()
     if suffix == ".pdf":
         return PdfParser()
-    return TextParser()  # .txt, .md, and anything text-like
+    return TextParser() # .txt, .md, and anything text-like
 
 
 def chunk_blocks(blocks: list[DocBlock], max_chars: int = 1200) -> list[str]:
     """Pack blocks into Episode-sized chunks, preserving structure:
 
-    - a ``table`` block is emitted whole, never split or merged into prose,
-    - a ``heading`` stays attached to the block(s) that follow it,
-    - prose accumulates up to ``max_chars`` before a new chunk starts.
+ - a ``table`` block is emitted whole, never split or merged into prose,
+ - a ``heading`` stays attached to the block(s) that follow it,
+ - prose accumulates up to ``max_chars`` before a new chunk starts.
     """
     chunks: list[str] = []
     buf: list[str] = []
@@ -156,7 +156,7 @@ def chunk_blocks(blocks: list[DocBlock], max_chars: int = 1200) -> list[str]:
         if block.kind == "table":
             flush()
             table = f"{pending_heading}\n\n{block.text}" if pending_heading else block.text
-            chunks.append(table.strip())  # whole table = one chunk
+            chunks.append(table.strip()) # whole table = one chunk
             pending_heading = None
             continue
         if block.kind == "heading":
@@ -180,7 +180,7 @@ def _derive_valid_at(
         return reference_time, "provided"
     try:
         return datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc), "document:mtime"
-    except OSError:  # pragma: no cover
+    except OSError: # pragma: no cover
         return None, "none"
 
 
@@ -206,7 +206,7 @@ def document_to_episodes(
     for i, chunk in enumerate(chunks):
         episodes.append(
             Episode(
-                id=f"{doc_id}#chunk{i}",  # identity -> provenance
+                id=f"{doc_id}#chunk{i}", # identity -> provenance
                 content=chunk,
                 reference_time=valid_at or utc_now(),
                 source="document",
@@ -215,7 +215,7 @@ def document_to_episodes(
                     "doc_id": doc_id,
                     "doc_path": str(path),
                     "chunk_index": i,
-                    "valid_at_source": valid_src,  # honesty label: derived, not authoritative
+                    "valid_at_source": valid_src, # honesty label: derived, not authoritative
                 },
             )
         )

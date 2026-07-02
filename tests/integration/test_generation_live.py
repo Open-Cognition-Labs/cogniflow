@@ -88,7 +88,7 @@ def test_temporal_correctness_survives_generation() -> None:
         gen = create_generator_from_env()
         try:
             await backend.write(_hq_episode("tesla_2010", "Palo Alto", 2010))
-            await backend.write(_hq_episode("tesla_2021", "Austin", 2021))  # supersedes
+            await backend.write(_hq_episode("tesla_2021", "Austin", 2021)) # supersedes
 
             q = "Where is Tesla headquartered?"
             past = await generate_answer(backend, q, gen, as_of=_dt(2018))
@@ -97,11 +97,11 @@ def test_temporal_correctness_survives_generation() -> None:
             # THE centerpiece: as-of 2018 answers Palo Alto (context), NOT Austin (training)
             assert "Palo Alto" in past.answer, past.answer
             assert "Austin" not in past.answer, past.answer
-            assert "Austin" in now.answer, now.answer  # present -> the current fact
+            assert "Austin" in now.answer, now.answer # present -> the current fact
 
             # provenance + confidence carried into the answer (T3/T4)
             assert past.facts and past.facts[0].provenance
-            assert past.confidence  # a valid_at_source histogram, non-empty
+            assert past.confidence # a valid_at_source histogram, non-empty
 
             # faithfulness (T5): a question the context cannot answer -> decline, don't invent
             unanswerable = await generate_answer(

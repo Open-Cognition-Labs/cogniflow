@@ -31,7 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { AcmeReplay } from "@/components/playground/acme-replay";
 
 type Doc = { name: string; created: number; superseded: number };
-const fmt = (d: string | null) => (d ? d.slice(0, 10) : "—");
+const fmt = (d: string | null) => (d ? d.slice(0, 10) : " - ");
 
 const DEMO = [
   { t: "acme_report_2011", d: "Acme Robotics is headquartered in Calderport.", when: "2011-01-01" },
@@ -71,7 +71,7 @@ export default function Playground() {
         setSid(s);
       } catch {
         setHealthErr(true);
-        setSid("browser"); // browser demo mode — handlers use the in-browser engine
+        setSid("browser"); // browser demo mode - handlers use the in-browser engine
       }
     })();
   }, []);
@@ -84,7 +84,7 @@ export default function Playground() {
     if (down) {
       DEMO.forEach((x, i) => mock.current.push({ id: `${x.t}-${i}`, statement: x.d, valid_from: x.when, title: x.t }));
       setDocs((d) => [...DEMO.map((x) => ({ name: x.t, created: 1, superseded: 0 })), ...d]);
-      toast.success("Demo loaded (browser mode) — set the as-of date to 2013 vs now.");
+      toast.success("Demo loaded (browser mode) - set the as-of date to 2013 vs now.");
       return;
     }
     setBusy("demo");
@@ -95,7 +95,7 @@ export default function Playground() {
         added.push({ name: x.t, created: r.facts_created, superseded: r.facts_superseded });
       }
       setDocs((d) => [...added, ...d]);
-      toast.success("Demo corpus loaded — set the as-of date to 2013 vs now.");
+      toast.success("Demo corpus loaded - set the as-of date to 2013 vs now.");
     } catch (e) {
       toast.error(`Ingest failed: ${(e as Error).message}`);
     } finally {
@@ -199,7 +199,7 @@ export default function Playground() {
       <p className="eyebrow mb-3">Playground</p>
       <h1 className="text-hero mb-3 !text-[clamp(2rem,4vw,3rem)]">Ask &ldquo;as of when?&rdquo;</h1>
       <p className="text-subhead mb-8 max-w-[62ch]">
-        Watch the system&rsquo;s belief change with time in the seeded scenario below &mdash; then
+        Watch the system&rsquo;s belief change with time in the seeded scenario below - then
         bring your own documents.
       </p>
 
@@ -207,7 +207,7 @@ export default function Playground() {
 
       <h2 className="text-section mb-2">Bring your own documents</h2>
       <p className="text-subhead mb-8 max-w-[62ch]">
-        Drop in a PDF (or paste text) with the date each fact was true, then ask &mdash; and move
+        Drop in a PDF (or paste text) with the date each fact was true, then ask - and move
         the <b>as-of</b> date to watch the answer change. Real ingestion, real bi-temporal store.
       </p>
 
@@ -217,7 +217,7 @@ export default function Playground() {
           <div>
             <div className="font-semibold text-foreground">Browser demo mode</div>
             <p className="mt-1 text-muted-foreground">
-              Running in your browser &mdash; load the demo (or paste facts) and move the as-of
+              Running in your browser - load the demo (or paste facts) and move the as-of
               slider to see it work. To ingest your own PDFs, start the platform API:{" "}
               <code className="rounded bg-secondary px-1.5 py-0.5">python cogniflow-api/main.py</code>.
             </p>
@@ -313,7 +313,7 @@ export default function Playground() {
             </div>
             <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
               <Clock className="size-3.5 text-brand" />
-              {useAsOf ? `Answering as of ${asOf} — the truth at that moment.` : "Answering as of now."}
+              {useAsOf ? `Answering as of ${asOf} - the truth at that moment.` : "Answering as of now."}
             </p>
           </div>
 
@@ -338,7 +338,7 @@ export default function Playground() {
                 {/* F2: the post-hoc faithfulness verdict - checked, not just asked */}
                 {answer.faithfulness && answer.faithfulness.status === "grounded" && (
                   <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-win/30 bg-win/10 px-2.5 py-1 text-xs font-medium text-win">
-                    <ShieldCheck className="size-3.5" /> grounded — every claim checked against the served facts
+                    <ShieldCheck className="size-3.5" /> grounded - every claim checked against the served facts
                   </div>
                 )}
                 {answer.faithfulness && answer.faithfulness.status === "unsupported_claims" && (

@@ -44,5 +44,5 @@ def test_nvidia_reranker_reorders_confusable_candidates_live() -> None:
         _b("tesla", "Tesla is headquartered in Austin"),
     ]
     ranked = policy.rank(RetrievalQuery(text="Where is Tesla headquartered?", top_k=3), beliefs)
-    assert ranked[0].belief.id == "tesla"  # the real cross-encoder floats the HQ fact to #1
-    assert ranked[0].score >= ranked[-1].score  # descending by relevance
+    assert ranked[0].belief.id == "tesla" # the real cross-encoder floats the HQ fact to #1
+    assert ranked[0].score >= ranked[-1].score # descending by relevance

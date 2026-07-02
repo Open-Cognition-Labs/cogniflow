@@ -1,4 +1,4 @@
-"""Core contracts and types — standard library only, no third-party imports."""
+"""Core contracts and types - standard library only, no third-party imports."""
 
 from __future__ import annotations
 

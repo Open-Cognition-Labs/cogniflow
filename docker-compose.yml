@@ -1,7 +1,7 @@
-# Cogniflow - one-command local/trusted-environment standup (Phase 5).
+# Cogniflow - one-command local/trusted-environment standup
 #   docker compose up --build      # FalkorDB + API + web, secure-by-default (auth ON)
 #   bash scripts/demo.sh           # the 60-second Acme bitemporal proof (key-free)
-# NOT production HA: in-memory session/queue break multi-replica; k8s/scale is Phase 6+.
+# NOT production HA: in-memory session/queue break multi-replica; k8s and HA packaging are on the roadmap.
 name: cogniflow
 
 services:

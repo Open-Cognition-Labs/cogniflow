@@ -36,13 +36,13 @@ class _Gated:
         self._gate = gate
 
     async def write(self, episode) -> WriteReceipt:
-        await self._gate.wait()  # never completes in q1 -> obs stays pending+journaled
+        await self._gate.wait() # never completes in q1 -> obs stays pending+journaled
         return WriteReceipt(episode_id=episode.id)
 
-    async def read(self, query) -> RetrievalResult:  # pragma: no cover
+    async def read(self, query) -> RetrievalResult: # pragma: no cover
         return RetrievalResult(query=query, results=(), as_of=None)
 
-    async def falsify(self, target, against=None) -> FalsificationVerdict:  # pragma: no cover
+    async def falsify(self, target, against=None) -> FalsificationVerdict: # pragma: no cover
         return FalsificationVerdict(target_id=str(target), superseded=False)
 
 
@@ -66,9 +66,9 @@ def test_durable_journal_survives_restart(tmp_path) -> None:
             lambda _g: _to_async(_Gated(gate)), journal=JsonFileJournal(journal_path)
         )
         q1.enqueue(Observation(id="o1", group_id="g", statement="x"))
-        await asyncio.sleep(0)  # let the worker pick it up and block
-        assert len(JsonFileJournal(journal_path).load()) == 1  # durable before ack
-        await q1.aclose()  # simulate restart (pending never processed)
+        await asyncio.sleep(0) # let the worker pick it up and block
+        assert len(JsonFileJournal(journal_path).load()) == 1 # durable before ack
+        await q1.aclose() # simulate restart (pending never processed)
 
         # q2: fresh process, same journal -> recover and drain
         working = _Working()
@@ -76,7 +76,7 @@ def test_durable_journal_survives_restart(tmp_path) -> None:
         assert q2.recover() == 1
         await q2.drain()
         assert working.stored == ["o1"]
-        assert JsonFileJournal(journal_path).load() == []  # acked -> cleared
+        assert JsonFileJournal(journal_path).load() == [] # acked -> cleared
         await q2.aclose()
 
     asyncio.run(run())
@@ -102,7 +102,7 @@ def _denver() -> Belief:
 
 def test_replay_over_archived_history_is_correct() -> None:
     archive = InMemoryArchive()
-    archive.archive([_boston()])  # Boston moved to cold storage
+    archive.archive([_boston()]) # Boston moved to cold storage
     hot = [_denver()]
 
     # without the archive, a past query loses history (the failure archiving must avoid)

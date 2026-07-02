@@ -36,10 +36,10 @@ class _FakeSubstrate:
             query=query, results=(ScoredBelief(belief=belief, score=0.9),), as_of=query.as_of
         )
 
-    async def write(self, episode):  # pragma: no cover
+    async def write(self, episode): # pragma: no cover
         raise NotImplementedError
 
-    async def falsify(self, target, against=None) -> FalsificationVerdict:  # pragma: no cover
+    async def falsify(self, target, against=None) -> FalsificationVerdict: # pragma: no cover
         return FalsificationVerdict(target_id=str(target), superseded=False)
 
 
@@ -58,12 +58,12 @@ def test_http_context_endpoint_returns_context_not_answer() -> None:
     assert r.status_code == 200
     body = r.json()
     assert set(body) == {"query", "as_of", "facts", "notes"}
-    assert "answer" not in body  # context, not a generated answer
+    assert "answer" not in body # context, not a generated answer
     fact = body["facts"][0]
     assert fact["statement"].endswith("Denver")
-    assert fact["valid_at_source"] == "derived"  # honesty label survives to the HTTP edge
+    assert fact["valid_at_source"] == "derived" # honesty label survives to the HTTP edge
     assert fact["provenance"] == ["acme_report_v2#chunk0"]
-    assert body["as_of"] == "2023-01-01T00:00:00+00:00"  # as-of echoed at the boundary
+    assert body["as_of"] == "2023-01-01T00:00:00+00:00" # as-of echoed at the boundary
 
 
 def test_http_endpoint_is_read_only() -> None:
@@ -85,4 +85,4 @@ def test_mcp_server_builds_with_get_context_tool() -> None:
     server = build_mcp_server(_FakeSubstrate())
     tools = asyncio.run(server.list_tools())
     names = {t.name for t in tools}
-    assert "get_context" in names  # the read-only context tool is exposed over MCP
+    assert "get_context" in names # the read-only context tool is exposed over MCP

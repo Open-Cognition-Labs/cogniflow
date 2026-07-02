@@ -33,10 +33,10 @@ FULL = (
     "tags: [growth, kpi]\n"
     "timestamp: '2026-03-01T00:00:00+00:00'\n"
     "fact:\n"
-    "  subject: Weekly Active Users\n"
-    "  predicate: DEFINED_AS\n"
-    "  object: trailing 7-day distinct users\n"
-    "  statement: Weekly Active Users is defined as trailing 7-day distinct users.\n"
+    " subject: Weekly Active Users\n"
+    " predicate: DEFINED_AS\n"
+    " object: trailing 7-day distinct users\n"
+    " statement: Weekly Active Users is defined as trailing 7-day distinct users.\n"
     "---\n"
     "# Definition\nTrailing 7-day distinct users. See [users](/tables/users.md).\n"
 )
@@ -54,8 +54,8 @@ def test_spec_conformance_type_only_and_broken_links(tmp_path) -> None:
     _write_bundle(tmp_path, {"a.md": TYPE_ONLY, "refs/b.md": BROKEN_LINKS, "index.md": "# ignored"})
     concepts = parse_bundle(tmp_path)
     ids = sorted(c.concept_id for c in concepts)
-    assert ids == ["a", "refs/b"]  # index.md is reserved, skipped
-    for c in concepts:  # mapping must not raise on minimal / broken-link concepts
+    assert ids == ["a", "refs/b"] # index.md is reserved, skipped
+    for c in concepts: # mapping must not raise on minimal / broken-link concepts
         ep = concept_to_episode(c)
         assert ep.id == c.concept_id
 
@@ -63,22 +63,22 @@ def test_spec_conformance_type_only_and_broken_links(tmp_path) -> None:
 def test_concept_to_episode_mapping_and_derived_valid_at() -> None:
     concept = parse_concept(FULL, "metrics/wau")
     ep = concept_to_episode(concept)
-    assert ep.id == "metrics/wau"  # concept id -> provenance/lineage
+    assert ep.id == "metrics/wau" # concept id -> provenance/lineage
     assert "Trailing 7-day distinct users" in ep.content
     assert ep.reference_time == datetime(2026, 3, 1, tzinfo=timezone.utc)
     md = ep.metadata
     assert md["okf_type"] == "Metric"
     assert md["okf_resource"] == "https://example.com/metrics/wau"
     assert md["okf_tags"] == ["growth", "kpi"]
-    assert md["valid_at_source"] == "okf:timestamp"  # derived, labeled
-    assert "/tables/users.md" in md["okf_links"]  # link -> edge
-    assert md["triple"]["target"] == "trailing 7-day distinct users"  # extension fast-path
+    assert md["valid_at_source"] == "okf:timestamp" # derived, labeled
+    assert "/tables/users.md" in md["okf_links"] # link -> edge
+    assert md["triple"]["target"] == "trailing 7-day distinct users" # extension fast-path
 
 
 def test_no_timestamp_is_labeled_not_okf_authoritative() -> None:
     ep = concept_to_episode(parse_concept(TYPE_ONLY, "a"))
-    assert ep.metadata["valid_at_source"] == "none"  # honesty: not OKF-authoritative
-    assert "triple" not in ep.metadata  # no extension fact -> prose path
+    assert ep.metadata["valid_at_source"] == "none" # honesty: not OKF-authoritative
+    assert "triple" not in ep.metadata # no extension fact -> prose path
 
 
 def test_ingest_bundle_writes_each_concept_through_substrate(tmp_path) -> None:
@@ -92,10 +92,10 @@ def test_ingest_bundle_writes_each_concept_through_substrate(tmp_path) -> None:
             self.written.append(episode.id)
             return WriteReceipt(episode_id=episode.id)
 
-        async def read(self, query) -> RetrievalResult:  # pragma: no cover
+        async def read(self, query) -> RetrievalResult: # pragma: no cover
             return RetrievalResult(query=query, results=(), as_of=query.as_of)
 
-        async def falsify(self, target, against=None) -> FalsificationVerdict:  # pragma: no cover
+        async def falsify(self, target, against=None) -> FalsificationVerdict: # pragma: no cover
             return FalsificationVerdict(target_id=str(target), superseded=False)
 
     sub = _RecordingSubstrate()

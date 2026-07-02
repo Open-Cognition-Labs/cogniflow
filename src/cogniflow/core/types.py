@@ -1,4 +1,4 @@
-"""Stable core types — the data the substrate moves around.
+"""Stable core types - the data the substrate moves around.
 
 These dataclasses are the public contract surface. Their field sets are frozen by
 ``tests/test_contracts_stable.py``; adding/removing a field is a deliberate,
@@ -25,7 +25,7 @@ def utc_now() -> datetime:
 
 @dataclass(frozen=True, slots=True)
 class Belief:
-    """A single fact with bi-temporal validity — the unit of truth.
+    """A single fact with bi-temporal validity - the unit of truth.
 
     ``valid_at`` / ``invalid_at`` = event-time interval (true in the world).
     ``created_at`` / ``expired_at`` = system-time interval (believed by the substrate).
@@ -93,7 +93,7 @@ class ScoredBelief:
 
 @dataclass(frozen=True, slots=True)
 class RetrievalResult:
-    """The result of ``Substrate.read`` — beliefs plus the resolved as-of."""
+    """The result of ``Substrate.read`` - beliefs plus the resolved as-of."""
 
     query: RetrievalQuery
     results: Sequence[ScoredBelief] = ()

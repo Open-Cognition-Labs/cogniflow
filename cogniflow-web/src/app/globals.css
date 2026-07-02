@@ -11,35 +11,35 @@
 :root {
   --radius: 0.85rem;
 
-  --background: #fbfaf8;         /* warm near-white canvas */
-  --foreground: #16181d;        /* near-black ink */
+  --background: #fbfaf8; /* warm near-white canvas */
+  --foreground: #16181d; /* near-black ink */
 
   --card: #ffffff;
   --card-foreground: #16181d;
   --popover: #ffffff;
   --popover-foreground: #16181d;
 
-  --primary: #e4551c;           /* warm orange - the brand/signature */
+  --primary: #e4551c; /* warm orange - the brand/signature */
   --primary-foreground: #ffffff;
   --secondary: #f2f1ec;
   --secondary-foreground: #16181d;
   --muted: #f2f1ec;
-  --muted-foreground: #5c6472;  /* AA on white */
+  --muted-foreground: #5c6472; /* AA on white */
   --accent: #f4efe8;
   --accent-foreground: #16181d;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
 
-  --border: #e8e5df;            /* warm hairline */
+  --border: #e8e5df; /* warm hairline */
   --input: #e8e5df;
   --ring: #e4551c;
 
   /* brand + semantic (custom) */
-  --brand: #e4551c;             /* warm orange */
-  --brand-2: #f59e0b;           /* amber */
-  --brand-3: #fb7b3a;           /* light orange */
-  --win: #0e9f6e;               /* emerald */
-  --warn: #b7791f;              /* amber-dark (AA on white) */
+  --brand: #e4551c; /* warm orange */
+  --brand-2: #f59e0b; /* amber */
+  --brand-3: #fb7b3a; /* light orange */
+  --win: #0e9f6e; /* emerald */
+  --warn: #b7791f; /* amber-dark (AA on white) */
   --miss: #8b93a3;
   --danger: #dc2626;
 

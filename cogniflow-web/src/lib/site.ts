@@ -19,9 +19,9 @@ export function displayName(name: string): string {
 }
 
 export const chartColors = {
-  brand: "#e4551c",   // Cogniflow (warm orange)
-  brand2: "#f59e0b",  // amber
-  plain: "#98a0ae",   // the "other" system - neutral gray, distinct from brand orange
+  brand: "#e4551c", // Cogniflow (warm orange)
+  brand2: "#f59e0b", // amber
+  plain: "#98a0ae", // the "other" system - neutral gray, distinct from brand orange
   win: "#0e9f6e",
   warn: "#b7791f",
   miss: "#98a0ae",

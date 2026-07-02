@@ -18,8 +18,7 @@ The context is already as-of-filtered, so the answer is as-of-correct **by const
 training. The prompt does exactly that ("Use ONLY the context facts", "TRUST THE CONTEXT",
 "do not guess"). Proven live: Tesla HQ moved Palo Alto -> Austin (2021), the generation
 model's training knows Austin, yet asked **as of 2018** the answer is **Palo Alto** (from the
-2018 context), not Austin. The answer un-knows what the context un-knows - the Phase-4
-invariant at the generation step.
+2018 context), not Austin. The answer un-knows what the context un-knows - the milestone invariant at the generation step.
 
 ### B - The answer does not launder the extraction floor
 The end-to-end run showed structured (OKF fact-key) extraction is deterministic while prose
@@ -83,8 +82,8 @@ from cogniflow.serving import create_app, build_mcp_server
 from cogniflow.generators import create_generator_from_env
 
 gen = create_generator_from_env()
-app = create_app(substrate, gen)          # /context (always) + /answer (with a generator)
-mcp = build_mcp_server(substrate, gen)    # get_context (always) + get_answer (with a generator)
+app = create_app(substrate, gen) # /context (always) + /answer (with a generator)
+mcp = build_mcp_server(substrate, gen) # get_context (always) + get_answer (with a generator)
 ```
 Without a generator, only the context surface is mounted - the model-agnostic core stands
 alone. Read-only throughout; generation never writes to the store.

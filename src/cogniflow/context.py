@@ -1,4 +1,4 @@
-"""The context-serving API (Slice A.3) - query in, temporally-correct *context* out.
+"""The context-serving API - query in, temporally-correct *context* out.
 
 Cogniflow as a standalone context engine: any model/agent asks for context "as of T" and
 gets validated, provenance-carrying facts to put in its own prompt. **Generation is not our
@@ -28,7 +28,7 @@ EXTRACTION_FLOOR_NOTE = (
     "no validity. Use each fact's valid_at_source to weight confidence."
 )
 
-# Phase 3 retrieval-quality notes (T1/T3), surfaced so a consumer never unknowingly evaluates on
+# milestone retrieval-quality notes (T1/T3), surfaced so a consumer never unknowingly evaluates on
 # meaning-blind or below-window retrieval. Distinct from the extraction floor above: these are
 # about RETRIEVAL (the embedder / the over-fetch window), not prose EXTRACTION (the LLM).
 NON_SEMANTIC_RETRIEVAL_NOTE = (
@@ -43,13 +43,13 @@ OVERFETCH_SATURATED_NOTE = (
 
 # Normalize the producer's raw label into a 3-way confidence signal. The raw label is also
 # carried (valid_at_source_raw) so nothing is hidden.
-#   authoritative - an explicit time was asserted by the source or the caller
-#   derived       - the time was inferred from metadata (e.g. a file mtime)
-#   none          - no validity signal at all
+# authoritative - an explicit time was asserted by the source or the caller
+# derived - the time was inferred from metadata (e.g. a file mtime)
+# none - no validity signal at all
 _SOURCE_NORMALIZATION = {
-    "okf:timestamp": "derived",   # OKF declares a timestamp but has no validity model
-    "provided": "authoritative",  # caller explicitly asserted the reference time
-    "document:mtime": "derived",  # inferred from file metadata
+    "okf:timestamp": "derived", # OKF declares a timestamp but has no validity model
+    "provided": "authoritative", # caller explicitly asserted the reference time
+    "document:mtime": "derived", # inferred from file metadata
     "none": "none",
 }
 
@@ -68,10 +68,10 @@ class ServedFact:
     statement: str
     valid_at: datetime | None
     invalid_at: datetime | None
-    valid_at_source: str  # normalized: "authoritative" | "derived" | "none"
-    valid_at_source_raw: str | None  # the producer's original label, for full transparency
-    provenance: tuple[str, ...]  # episode/document ids that asserted this
-    superseded_by: str | None  # the belief that superseded this one, if any
+    valid_at_source: str # normalized: "authoritative" | "derived" | "none"
+    valid_at_source_raw: str | None # the producer's original label, for full transparency
+    provenance: tuple[str, ...] # episode/document ids that asserted this
+    superseded_by: str | None # the belief that superseded this one, if any
     score: float | None
 
     def to_dict(self) -> dict[str, Any]:
@@ -150,7 +150,7 @@ async def serve_context(
     facts = [_belief_to_served(sb) for sb in result.results]
     # Surface retrieval-quality notes when the substrate reports them (generic getattr, so a
     # substrate that does not expose these is unaffected). Never silent about meaning-blind
-    # retrieval or a saturated over-fetch window (Phase 3 T1/T3).
+    # retrieval or a saturated over-fetch window .
     notes = [EXTRACTION_FLOOR_NOTE]
     if not getattr(substrate, "embedder_is_semantic", True):
         notes.append(NON_SEMANTIC_RETRIEVAL_NOTE)

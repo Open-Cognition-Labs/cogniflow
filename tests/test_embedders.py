@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-pytest.importorskip("graphiti_core")  # the embedder layer wraps Graphiti's EmbedderClient
+pytest.importorskip("graphiti_core") # the embedder layer wraps Graphiti's EmbedderClient
 
 from cogniflow.backends._local_embedder import LocalDeterministicEmbedder  # noqa: E402
 from cogniflow.backends.embedders import (  # noqa: E402
@@ -31,7 +31,7 @@ def _no_ambient_key(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_hash_is_the_default_and_key_free() -> None:
-    assert GraphitiFalkorDBConfig().embedder == "hash"  # T5: default stays hash
+    assert GraphitiFalkorDBConfig().embedder == "hash" # T5: default stays hash
     e = create_embedder("hash")
     assert isinstance(e, LocalDeterministicEmbedder)
     assert e.embedding_dim == 1024
@@ -39,18 +39,18 @@ def test_hash_is_the_default_and_key_free() -> None:
 
 
 def test_real_embedder_selected_by_name_carries_dimension() -> None:
-    e = create_embedder("bge-m3", api_key="x")  # no network at construction
+    e = create_embedder("bge-m3", api_key="x") # no network at construction
     assert isinstance(e, NvidiaEmbedder)
     assert e.model == "baai/bge-m3"
-    assert e.embedding_dim == 1024  # T1: dimension carried
+    assert e.embedding_dim == 1024 # T1: dimension carried
     assert create_embedder("nvidia-e5", api_key="x").model == "nvidia/nv-embedqa-e5-v5"
     assert create_embedder("bge-m3", api_key="x", embedding_dim=2048).embedding_dim == 2048
 
 
 def test_fail_loud_missing_key_does_not_fall_back_to_hash() -> None:
     with pytest.raises(EmbedderError) as ei:
-        create_embedder("bge-m3")  # no key, no ambient env
-    assert "key" in str(ei.value).lower()  # clear message
+        create_embedder("bge-m3") # no key, no ambient env
+    assert "key" in str(ei.value).lower() # clear message
     # the crucial property: it raised, it did NOT silently return the hash embedder
 
 
@@ -61,7 +61,7 @@ def test_fail_loud_unknown_name() -> None:
 
 
 def test_excluded_model_is_license_blocked() -> None:
-    assert "nvidia/nv-embed-v1" in EXCLUDED_MODELS  # documented exclusion
+    assert "nvidia/nv-embed-v1" in EXCLUDED_MODELS # documented exclusion
     with pytest.raises(EmbedderError) as ei:
         create_embedder("nv-embed-v1", api_key="x")
     assert "license" in str(ei.value).lower()
@@ -71,10 +71,10 @@ def test_excluded_model_is_license_blocked() -> None:
 
 
 def test_dimension_guard_hard_crashes_on_mismatch() -> None:
-    check_embedding_dimension(None, 1024)  # empty/undetectable store -> no-op
-    check_embedding_dimension(1024, 1024)  # match -> ok
+    check_embedding_dimension(None, 1024) # empty/undetectable store -> no-op
+    check_embedding_dimension(1024, 1024) # match -> ok
     with pytest.raises(EmbedderDimensionMismatch) as ei:
-        check_embedding_dimension(768, 1024)  # mismatch -> hard-crash, never warn
+        check_embedding_dimension(768, 1024) # mismatch -> hard-crash, never warn
     assert "mismatch" in str(ei.value).lower()
 
 

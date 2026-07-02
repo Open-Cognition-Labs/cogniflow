@@ -49,7 +49,7 @@ def test_verify_fact_reliability_is_measured() -> None:
     # Recall is the HEADLINE for an audit ledger: a missed contradiction (false "not
     # superseded") is the dangerous error.
     #
-    # RECALIBRATED BY MEASUREMENT (F3, 2026-07-02, MiniMax-M3, n=60, 30 pos / 30 neg):
+    # RECALIBRATED BY MEASUREMENT :
     # precision 1.00, recall 0.57, accuracy 0.78, indeterminate 18/60 (the misses are hedges,
     # not wrong flags). Method: regression bound = point estimate - 1 binomial SE, rounded down
     # to 0.05 -> recall >= 0.50 (0.57 - 0.09), precision >= 0.85 (1.00 - 0.09, tightened where

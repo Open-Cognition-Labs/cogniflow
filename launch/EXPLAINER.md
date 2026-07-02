@@ -76,7 +76,7 @@ ever leaks a later correction into the past, CI goes red.
 ```bash
 git clone <repo> && cd cogniflow
 docker compose up -d --build
-bash scripts/demo.sh      # now=Denver · 2020=Boston · replay(2021)=Boston, Denver un-known
+bash scripts/demo.sh # now=Denver · 2020=Boston · replay(2021)=Boston, Denver un-known
 ```
 
 The third line is the whole argument.

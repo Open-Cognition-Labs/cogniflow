@@ -5,7 +5,7 @@ report: the as-of head-to-head (the lead), the cited answer with confidence, the
 lift (off vs on), and the weak-context faithfulness check.
 
 Prereqs: FalkorDB, .env with COGNIFLOW_LLM_* and COGNIFLOW_EMBEDDER_API_KEY.
-Run:  PYTHONPATH=src python demo/capture_demo.py
+Run: PYTHONPATH=src python demo/capture_demo.py
 """
 
 from __future__ import annotations
@@ -75,10 +75,10 @@ async def main() -> None:
 
     ingest = _backend("default")
     await ingest.setup()
-    await build(ingest)  # confusable corpus, chronological order
+    await build(ingest) # confusable corpus, chronological order
 
-    plain = ingest  # retrieval OFF (default passthrough)
-    rerank = _backend("reranker", {"reranker": "nvidia-rerank"})  # retrieval ON, same graph
+    plain = ingest # retrieval OFF (default passthrough)
+    rerank = _backend("reranker", {"reranker": "nvidia-rerank"}) # retrieval ON, same graph
     gen = create_generator_from_env()
 
     # --- the reranker measurement (off vs on) ---
@@ -122,14 +122,14 @@ async def main() -> None:
 
     print("=" * 78)
     print(f"AS-OF HEADLINE: {q}")
-    print(f"  now        -> {now.answer}  {now.confidence}")
-    print(f"  as of 2015 -> {past.answer}  {past.confidence}")
-    print("  plain RAG  -> cannot answer 'as of 2015' at all (no temporal axis)")
+    print(f" now -> {now.answer} {now.confidence}")
+    print(f" as of 2015 -> {past.answer} {past.confidence}")
+    print(" plain RAG -> cannot answer 'as of 2015' at all (no temporal axis)")
     print("-" * 78)
     print(f"RERANKER on the confusable corpus (golden n={len(GOLDEN)}):")
-    print(f"  OFF (retrieval only): top1={off_hits}/{len(GOLDEN)}  MRR={off_mrr:.3f}")
-    print(f"  ON  (nvidia-rerank) : top1={on_hits}/{len(GOLDEN)}  MRR={on_mrr:.3f}")
-    print(f"  LIFT: top1 {on_hits - off_hits:+d}  MRR {on_mrr - off_mrr:+.3f}")
+    print(f" OFF (retrieval only): top1={off_hits}/{len(GOLDEN)} MRR={off_mrr:.3f}")
+    print(f" ON (nvidia-rerank) : top1={on_hits}/{len(GOLDEN)} MRR={on_mrr:.3f}")
+    print(f" LIFT: top1 {on_hits - off_hits:+d} MRR {on_mrr - off_mrr:+.3f}")
     print("-" * 78)
     print(f"WEAK CONTEXT: {weak.answer[:120]}")
     print("=" * 78)

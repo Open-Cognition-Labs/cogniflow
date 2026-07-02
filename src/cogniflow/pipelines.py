@@ -1,6 +1,6 @@
-"""Straight temporal-RAG query loop (Slice A, T3).
+"""Straight temporal-RAG query loop .
 
-Deliberately a STRAIGHT pipeline, not the Phase-1b agentic loop:
+Deliberately a STRAIGHT pipeline, not the milestone agentic loop:
 
     question -> temporal retrieve (validity-filtered, as-of-able) -> generate
 
@@ -41,8 +41,8 @@ class RAGResult:
 
 async def _maybe_await(value: str | Awaitable[str]) -> str:
     if hasattr(value, "__await__"):
-        return await value  # type: ignore[misc]
-    return value  # type: ignore[return-value]
+        return await value # type: ignore[misc]
+    return value # type: ignore[return-value]
 
 
 async def temporal_rag_answer(

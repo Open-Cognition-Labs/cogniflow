@@ -47,7 +47,7 @@ def test_iso_lexicographic_equals_chronological() -> None:
     # chronologically, including the microseconds-vs-no-microseconds boundary.
     times = [
         datetime(2019, 1, 1, tzinfo=timezone.utc),
-        datetime(2026, 6, 29, 1, 51, 55, tzinfo=timezone.utc),  # no microseconds
+        datetime(2026, 6, 29, 1, 51, 55, tzinfo=timezone.utc), # no microseconds
         datetime(2026, 6, 29, 1, 51, 55, 253024, tzinfo=timezone.utc),
         datetime(2026, 6, 29, 1, 51, 57, 850130, tzinfo=timezone.utc),
     ]

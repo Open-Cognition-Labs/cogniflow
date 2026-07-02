@@ -9,7 +9,7 @@ const cityOf = (statement: string) => {
   const m = statement.split(/\bin\b/i);
   return (m.length > 1 ? m[m.length - 1] : statement).replace(/[.\s]+$/, "").trim();
 };
-const ymd = (d: string | null) => (d ? d.slice(0, 10) : "—");
+const ymd = (d: string | null) => (d ? d.slice(0, 10) : " - ");
 const year = (iso: string) => iso.slice(0, 4);
 const monthLabel = (iso: string) =>
   new Date(iso + "T00:00:00Z").toLocaleDateString("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
@@ -116,18 +116,18 @@ export function AcmeReplay() {
   }
 
   const now = seed?.current ?? [];
-  const nowCity = now[0] ? cityOf(now[0].statement) : "—";
-  const evCity = event2020[0] ? cityOf(event2020[0].statement) : "—";
+  const nowCity = now[0] ? cityOf(now[0].statement) : " - ";
+  const evCity = event2020[0] ? cityOf(event2020[0].statement) : " - ";
   const replayCity = replay[0] ? cityOf(replay[0].statement) : null;
 
   return (
     <section className="section-box mb-10 p-6 sm:p-8">
-      <p className="eyebrow mb-2">The proof — system-time replay</p>
+      <p className="eyebrow mb-2">The proof - system-time replay</p>
       <h2 className="text-section mb-2">What did the system believe, and when?</h2>
       <p className="text-subhead mb-6 max-w-[70ch]">
         A seeded scenario: Acme Corp&rsquo;s headquarters. The 2019 filing said <b>Boston</b>; the
         2022 filing said <b>Denver</b>. Drag the system-time slider to replay what the ledger knew at
-        any past moment &mdash; the one thing plain RAG cannot do.
+        any past moment - the one thing plain RAG cannot do.
       </p>
 
       {/* Q1 + Q2: the two easy answers */}
@@ -136,7 +136,7 @@ export function AcmeReplay() {
         <QuickAnswer label="Where was it in 2020?" sub="event-time · as of 2020" city={evCity} loading={!seed} />
       </div>
 
-      {/* Q3: the scrubber — the money shot */}
+      {/* Q3: the scrubber - the money shot */}
       <div className="ring-glow rounded-xl border border-brand/25 bg-card p-5 sm:p-6 elev">
         <div className="mb-4 flex items-center gap-2 text-sm font-semibold">
           <History className="size-4 text-brand" /> System-time replay
@@ -146,7 +146,7 @@ export function AcmeReplay() {
         <div className="mb-2 flex items-baseline justify-between">
           <span className="text-xs text-muted-foreground">The system knew, as of</span>
           <span className="font-display text-lg font-semibold tabular-nums">
-            {systemTime ? monthLabel(systemTime) : "—"}
+            {systemTime ? monthLabel(systemTime) : " - "}
           </span>
         </div>
 
@@ -191,7 +191,7 @@ export function AcmeReplay() {
                 <p className="mt-2 text-xs text-muted-foreground">
                   {replayCity === "Denver"
                     ? "After ingesting the 2022 press release."
-                    : "It had not yet learned about the 2022 move — the later correction is un-known at this system-time."}
+                    : "It had not yet learned about the 2022 move - the later correction is un-known at this system-time."}
                 </p>
                 {replay[0] && (
                   <div className="mt-2 text-xs text-muted-foreground">
@@ -229,7 +229,7 @@ export function AcmeReplay() {
       <p className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
         <ArrowRight className="size-4 text-brand" />
         Plain RAG answers &ldquo;what is true now.&rdquo; This answers &ldquo;what did we believe
-        then&rdquo; &mdash; and never leaks a later correction into the past.
+        then&rdquo; - and never leaks a later correction into the past.
       </p>
     </section>
   );

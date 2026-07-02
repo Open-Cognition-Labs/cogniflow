@@ -30,8 +30,8 @@ from cogniflow.backends.graphiti_falkordb import (  # noqa: E402
 HOST = os.getenv("COGNIFLOW_FALKORDB_HOST", "localhost")
 PORT = int(os.getenv("COGNIFLOW_FALKORDB_PORT", "6379"))
 
-_C2019 = "2019-01-01T00:00:00+00:00"  # learned + valid: the Boston filing
-_C2022 = "2022-01-01T00:00:00+00:00"  # learned + valid: the Denver filing; Boston ends here
+_C2019 = "2019-01-01T00:00:00+00:00" # learned + valid: the Boston filing
+_C2022 = "2022-01-01T00:00:00+00:00" # learned + valid: the Denver filing; Boston ends here
 
 
 def _falkordb_up() -> bool:
@@ -55,7 +55,7 @@ def _cfg(group: str) -> GraphitiFalkorDBConfig:
     cfg.llm_api_key = cfg.llm_api_key or "ci-not-used"
     cfg.llm_base_url = cfg.llm_base_url or "https://api.openai.com/v1"
     cfg.llm_model = cfg.llm_model or "gpt-4o-mini"
-    cfg.embedder = "hash"  # key-free; audit queries do not touch embeddings
+    cfg.embedder = "hash" # key-free; audit queries do not touch embeddings
     return cfg
 
 

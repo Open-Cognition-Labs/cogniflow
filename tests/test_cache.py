@@ -39,10 +39,10 @@ class _FakeLedger:
             if b.created_at <= system_time
         ]
 
-    async def bitemporal_query(self, system_time, event_time, group_id=None):  # pragma: no cover
+    async def bitemporal_query(self, system_time, event_time, group_id=None): # pragma: no cover
         return []
 
-    async def provenance_trace(self, belief_id, group_id=None):  # pragma: no cover
+    async def provenance_trace(self, belief_id, group_id=None): # pragma: no cover
         return None
 
 
@@ -57,7 +57,7 @@ def test_dual_axis_cache_trap() -> None:
         # current-knowledge event-time, cached
         first = [b.id for b in await cache.event_time_query(_w(2020), "g")]
         assert first == ["boston"]
-        await cache.event_time_query(_w(2020), "g")  # served from cache
+        await cache.event_time_query(_w(2020), "g") # served from cache
         assert fake.event_calls == 1
 
         # a past system-time replay, cached (frozen)
@@ -77,10 +77,10 @@ def test_dual_axis_cache_trap() -> None:
         # current-knowledge read MUST reflect the write (live axis invalidated)
         after = {b.id for b in await cache.event_time_query(_w(2023), "g")}
         assert "denver" in after and "boston" not in after
-        assert fake.event_calls == 2  # re-computed, not stale
+        assert fake.event_calls == 2 # re-computed, not stale
 
         # the past system-time replay MUST stay frozen (served from cache, untouched)
         await cache.system_time_replay(_w(2019), "g")
-        assert fake.system_calls == 1  # still 1: not recomputed despite the write
+        assert fake.system_calls == 1 # still 1: not recomputed despite the write
 
     asyncio.run(run())

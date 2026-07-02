@@ -1,6 +1,6 @@
-"""Substrate backends. Phase 0 ships only the no-op backend.
+"""Substrate backends. milestone ships only the no-op backend.
 
-The Graphiti/FalkorDB backend is deferred to Phase 1 and will live alongside
+The Graphiti/FalkorDB backend is deferred to milestone and will live alongside
 ``noop`` here, implementing ``AsyncSubstrate``.
 """
 

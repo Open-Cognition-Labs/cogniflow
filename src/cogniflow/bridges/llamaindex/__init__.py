@@ -1,4 +1,4 @@
-"""LlamaIndex bridge (Phase 1b): adapters that put the cogniflow substrate behind a
+"""LlamaIndex bridge : adapters that put the cogniflow substrate behind a
 LlamaIndex retriever, node-postprocessor, and agent.
 
 This package imports ``llama-index-core`` (and, for ``agent``, an OpenAI-compatible

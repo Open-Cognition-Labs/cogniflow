@@ -1,8 +1,8 @@
-# F5 two-replica overlay: the production-deployable shell (still NOT "enterprise").
+# Two-replica overlay: the production-deployable shell (still NOT "enterprise").
 #   docker compose -f docker-compose.yml -f docker-compose.replicas.yml up -d --build
 #   bash scripts/two_replica_proof.sh
 # Both replicas run with COGNIFLOW_SHARED_STATE=1: session ownership/config and rate counters
-# live in Redis (the FalkorDB server), so any replica serves any session and the Phase-4
+# live in Redis (the FalkorDB server), so any replica serves any session and the token-ownership
 # scoping semantics hold across replicas. Put a real load balancer in front for production.
 services:
   api:

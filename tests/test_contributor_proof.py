@@ -33,7 +33,7 @@ class ClosedIntervalValidity:
         if as_of is not None:
             if belief.valid_at is not None and as_of < belief.valid_at:
                 return False
-            if belief.invalid_at is not None and as_of > belief.invalid_at:  # inclusive end
+            if belief.invalid_at is not None and as_of > belief.invalid_at: # inclusive end
                 return False
             return True
         if include_expired:

@@ -36,10 +36,10 @@ class _AsOfSubstrate:
             query=query, results=(ScoredBelief(belief=belief),), as_of=query.as_of
         )
 
-    async def write(self, episode):  # pragma: no cover
+    async def write(self, episode): # pragma: no cover
         raise NotImplementedError
 
-    async def falsify(self, target, against=None) -> FalsificationVerdict:  # pragma: no cover
+    async def falsify(self, target, against=None) -> FalsificationVerdict: # pragma: no cover
         return FalsificationVerdict(target_id=str(target), superseded=False)
 
 
@@ -54,7 +54,7 @@ async def _echo_generate(prompt: str) -> str:
 def test_straight_loop_grounds_answer_in_retrieved_facts() -> None:
     res = asyncio.run(temporal_rag_answer(_AsOfSubstrate(), "Define WAU", _echo_generate))
     assert res.facts == ["WAU = trailing 28-day distinct users"]
-    assert "28-day" in res.answer  # answered only from the retrieved fact
+    assert "28-day" in res.answer # answered only from the retrieved fact
 
 
 def test_as_of_is_threaded_into_retrieval() -> None:
@@ -65,7 +65,7 @@ def test_as_of_is_threaded_into_retrieval() -> None:
         temporal_rag_answer(_AsOfSubstrate(), "Define WAU", _echo_generate, as_of=_w(2027))
     )
     assert "7-day" in march.answer
-    assert "28-day" in june.answer  # same question, different as_of -> different answer
+    assert "28-day" in june.answer # same question, different as_of -> different answer
 
 
 def test_sync_generator_is_supported() -> None:

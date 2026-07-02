@@ -1,4 +1,4 @@
-"""Phase 3 T3: the over-fetch depth is tunable via env, and the saturation flag defaults off.
+"""milestone: the over-fetch depth is tunable via env, and the saturation flag defaults off.
 
 Guarded by graphiti_core import: runs in the integration lane and locally (where the backend
 deps are installed), skips cleanly in the contract-only CI job.
@@ -24,5 +24,5 @@ def test_overfetch_depth_is_tunable_via_env(monkeypatch: pytest.MonkeyPatch) -> 
 
 def test_overfetch_defaults_preserved() -> None:
     cfg = GraphitiFalkorDBConfig(group_id="cfg_test")
-    assert cfg.overfetch_factor == 10  # unchanged default behavior (T5)
+    assert cfg.overfetch_factor == 10 # unchanged default behavior (T5)
     assert cfg.min_overfetch == 50

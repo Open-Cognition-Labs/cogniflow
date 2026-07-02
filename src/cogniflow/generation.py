@@ -9,7 +9,7 @@ Two load-bearing properties:
      answer is as-of-correct BY CONSTRUCTION - provided the LLM answers ONLY from the served
      context and is told to ignore its own training. Asked "where was X as of 2020", it must
      answer from the 2020 context (the old fact), not from what its training knows today. This
-     is the Phase-4 un-knowing invariant, at the generation step.
+     is the milestone un-knowing invariant, at the generation step.
   B. The answer does not launder the extraction floor. Each cited fact carries its
      valid_at_source confidence (authoritative structured vs derived/prose), and the response
      surfaces it, so a confident sentence built on LLM-extracted prose is not mistaken for one
@@ -65,24 +65,24 @@ class GenerationResult:
     facts: list[ServedFact] = field(default_factory=list)
     as_of: datetime | None = None
     generator_model: str | None = None
-    confidence: dict[str, int] = field(default_factory=dict)  # valid_at_source histogram
-    faithfulness: FaithfulnessReport | None = None  # F2: the checked (not just asked) guarantee
+    confidence: dict[str, int] = field(default_factory=dict) # valid_at_source histogram
+    faithfulness: FaithfulnessReport | None = None # F2: the checked (not just asked) guarantee
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "answer": self.answer,
             "as_of": self.as_of.isoformat() if self.as_of else None,
             "generator_model": self.generator_model,
-            "confidence": self.confidence,  # B: don't launder the floor
-            "facts": [f.to_dict() for f in self.facts],  # T4: provenance attached
+            "confidence": self.confidence, # B: don't launder the floor
+            "facts": [f.to_dict() for f in self.facts], # T4: provenance attached
             "faithfulness": self.faithfulness.to_dict() if self.faithfulness else None,
         }
 
 
 async def _maybe_await(value: str | Awaitable[str]) -> str:
     if hasattr(value, "__await__"):
-        return await value  # type: ignore[misc]
-    return value  # type: ignore[return-value]
+        return await value # type: ignore[misc]
+    return value # type: ignore[return-value]
 
 
 def _format_facts(facts: list[ServedFact]) -> str:

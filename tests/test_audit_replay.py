@@ -21,13 +21,13 @@ from cogniflow.core.types import Belief, FalsificationVerdict
 from cogniflow.registry import create_policy
 
 
-def _w(year: int) -> datetime:  # world (event) time
+def _w(year: int) -> datetime: # world (event) time
     return datetime(year, 1, 1, tzinfo=timezone.utc)
 
 
 # System-time line (when the system learned things): t0 < S_BEFORE < E < S_AFTER.
 T0 = datetime(2026, 1, 1, tzinfo=timezone.utc)
-E = datetime(2026, 6, 1, tzinfo=timezone.utc)  # Denver ingested == Boston superseded (atomic)
+E = datetime(2026, 6, 1, tzinfo=timezone.utc) # Denver ingested == Boston superseded (atomic)
 S_BEFORE = datetime(2026, 3, 1, tzinfo=timezone.utc)
 S_AFTER = datetime(2026, 9, 1, tzinfo=timezone.utc)
 
@@ -69,11 +69,11 @@ def test_reconstruct_keeps_invalidation_known_by_S() -> None:
 
 def test_centerpiece_replay_before_E_shows_boston_live_not_already_ended() -> None:
     # Replay to S<E asking world-time 2023 must return Boston AS LIVE/UN-SUPERSEDED,
-    # never "Boston, already known to have ended in 2022". This is the lie this phase
+    # never "Boston, already known to have ended in 2022". This is the lie this stage
     # exists to prevent.
     result = bitemporal_query(_facts(), S_BEFORE, _w(2023))
     assert [b.id for b in result] == ["boston"]
-    assert result[0].invalid_at is None  # knowledge of the end is NOT leaked backward
+    assert result[0].invalid_at is None # knowledge of the end is NOT leaked backward
 
 
 # --- the (S, T) quadrant grid ------------------------------------------------
@@ -82,9 +82,9 @@ def test_centerpiece_replay_before_E_shows_boston_live_not_already_ended() -> No
 def test_bitemporal_quadrants() -> None:
     grid = {
         (S_BEFORE, 2020): ["boston"],
-        (S_BEFORE, 2023): ["boston"],  # un-known end -> still believed valid at 2023
-        (S_AFTER, 2020): ["boston"],   # now we know Boston was HQ in 2020
-        (S_AFTER, 2023): ["denver"],   # now we know Boston ended; Denver is current
+        (S_BEFORE, 2023): ["boston"], # un-known end -> still believed valid at 2023
+        (S_AFTER, 2020): ["boston"], # now we know Boston was HQ in 2020
+        (S_AFTER, 2023): ["denver"], # now we know Boston ended; Denver is current
     }
     for (s, t), expected in grid.items():
         assert [b.id for b in bitemporal_query(_facts(), s, _w(t))] == expected, (s, t)
@@ -110,7 +110,7 @@ def test_interval_overlap_indeterminate_when_target_has_no_valid_at() -> None:
     later = Belief(id="c", statement="x", created_at=T0, valid_at=_w(2024))
     verdict = policy.assess(target, [target, later])
     assert verdict.superseded is False
-    assert verdict.indeterminate is True  # distinguishable from a confident "not superseded"
+    assert verdict.indeterminate is True # distinguishable from a confident "not superseded"
 
 
 # --- B2: two-tier falsification conformance ----------------------------------

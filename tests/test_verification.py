@@ -41,7 +41,7 @@ def test_detects_contradiction_from_clean_json() -> None:
     verdict = LLMFalsificationPolicy(complete).assess(_target(), [_target(), _denver()])
     assert verdict.superseded is True
     assert verdict.superseded_by == "denver"
-    assert verdict.invalid_at == _w(2022)  # taken from the matched candidate
+    assert verdict.invalid_at == _w(2022) # taken from the matched candidate
     assert verdict.indeterminate is False
 
 
@@ -60,7 +60,7 @@ def test_timeout_or_error_degrades_to_indeterminate_never_raises() -> None:
 
     verdict = LLMFalsificationPolicy(boom).assess(_target(), [_denver()])
     assert verdict.indeterminate is True
-    assert verdict.superseded is False  # bounded fallback, NOT a confident clean
+    assert verdict.superseded is False # bounded fallback, NOT a confident clean
 
 
 def test_unparseable_response_is_indeterminate() -> None:
@@ -84,7 +84,7 @@ def test_passes_conformance_invariants_and_does_not_mutate() -> None:
 
 # --- tool no-mutation boundary (needs llama-index, no LLM/DB) -----------------
 
-llama = pytest.importorskip("llama_index.core")  # noqa: F841
+llama = pytest.importorskip("llama_index.core") # noqa: F841
 
 
 def test_verify_fact_tool_is_read_only() -> None:
@@ -102,11 +102,11 @@ def test_verify_fact_tool_is_read_only() -> None:
                 query=query, results=(ScoredBelief(belief=_denver()),), as_of=query.as_of
             )
 
-        async def write(self, episode):  # must never be called by verify
+        async def write(self, episode): # must never be called by verify
             self.writes += 1
             raise AssertionError("verify_fact must not write")
 
-        async def falsify(self, target, against=None):  # pragma: no cover
+        async def falsify(self, target, against=None): # pragma: no cover
             raise NotImplementedError
 
     backend = _ReadOnlyTrackingBackend()
@@ -119,4 +119,4 @@ def test_verify_fact_tool_is_read_only() -> None:
 
     text = asyncio.run(run())
     assert "contradicted" in text
-    assert backend.writes == 0  # read-only advisory: no mutation
+    assert backend.writes == 0 # read-only advisory: no mutation

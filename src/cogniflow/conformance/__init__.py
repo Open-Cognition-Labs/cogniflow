@@ -2,7 +2,7 @@
 
 Any backend claiming to be a cogniflow ``Substrate`` or ``AsyncSubstrate`` must
 pass this suite. It routes by async-ness so a backend is graded by a driver that
-actually ran it. Phase-1 checks are structural/type-level; behavioral conformance
+actually ran it. milestone checks are structural/type-level; behavioral conformance
 (bi-temporal correctness, falsification semantics) is added with the FalkorDB
 backend.
 """

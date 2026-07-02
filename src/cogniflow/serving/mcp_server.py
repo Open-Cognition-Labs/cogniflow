@@ -20,7 +20,7 @@ from ..generation import generate_answer
 
 try:
     from mcp.server.fastmcp import FastMCP
-except ImportError as e:  # pragma: no cover
+except ImportError as e: # pragma: no cover
     raise RuntimeError(
         "The MCP serving surface needs the 'mcp' extra: pip install 'cogniflow-rag[mcp]'"
     ) from e

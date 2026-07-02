@@ -1,5 +1,5 @@
-"""Bridges — framework-neutral contracts for adapting the substrate onto external
-RAG/agent frameworks. Phase 0 ships only the neutral contracts; concrete adapters
+"""Bridges - framework-neutral contracts for adapting the substrate onto external
+RAG/agent frameworks. milestone ships only the neutral contracts; concrete adapters
 (e.g. the LlamaIndex bridge) are deferred.
 """
 

@@ -1,4 +1,4 @@
-"""OKF (Open Knowledge Format) intake - the first front door (Slice A).
+"""OKF (Open Knowledge Format) intake - the first front door .
 
 Parses a Google OKF bundle (a directory of markdown files with YAML frontmatter) and
 maps each concept to a cogniflow ``Episode`` that the existing substrate ``write`` path
@@ -6,9 +6,9 @@ ingests. Touches no core; it is a pure producer.
 
 Built to the OKF SPEC's weak conformance (SPEC.md sec.4.1/sec.9), NOT the reference
 agent's stricter rule:
-  - only ``type`` is meaningful; missing optional fields are tolerated,
-  - unknown ``type`` values are tolerated,
-  - broken cross-links are tolerated (never a parse failure).
+ - only ``type`` is meaningful; missing optional fields are tolerated,
+ - unknown ``type`` values are tolerated,
+ - broken cross-links are tolerated (never a parse failure).
 
 Honesty rule: OKF's ``timestamp`` is *last-modified* and ``log.md`` is a prose changelog
 - neither is an authoritative validity interval. So a concept's ``valid_at`` is *derived*
@@ -38,7 +38,7 @@ _LINK_RE = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 
 @dataclass
 class OKFConcept:
-    concept_id: str  # file path within the bundle, minus .md (sec.2)
+    concept_id: str # file path within the bundle, minus .md (sec.2)
     frontmatter: dict[str, Any] = field(default_factory=dict)
     body: str = ""
     links: list[str] = field(default_factory=list)
@@ -47,7 +47,7 @@ class OKFConcept:
 def _split_frontmatter(text: str) -> tuple[dict[str, Any], str]:
     lines = text.splitlines()
     if not lines or lines[0].strip() != _FM:
-        return {}, text  # no frontmatter is tolerated (weak conformance)
+        return {}, text # no frontmatter is tolerated (weak conformance)
     end = next((i for i in range(1, len(lines)) if lines[i].strip() == _FM), None)
     if end is None:
         return {}, text
@@ -104,12 +104,12 @@ def concept_to_episode(concept: OKFConcept) -> Episode:
     fm = concept.frontmatter
     valid_at, valid_src = _derive_valid_at(fm)
     metadata: dict[str, Any] = {
-        "okf_concept_id": concept.concept_id,  # identity -> provenance/lineage
+        "okf_concept_id": concept.concept_id, # identity -> provenance/lineage
         "okf_type": fm.get("type"),
         "okf_resource": fm.get("resource"),
         "okf_tags": list(fm.get("tags") or []),
-        "okf_links": list(concept.links),  # untyped directed edges (generic first cut)
-        "valid_at_source": valid_src,  # honesty label: derived, not OKF-authoritative
+        "okf_links": list(concept.links), # untyped directed edges (generic first cut)
+        "valid_at_source": valid_src, # honesty label: derived, not OKF-authoritative
     }
     # Optional precise temporal fact via an OKF extension key (arbitrary keys allowed).
     fact = fm.get("fact")

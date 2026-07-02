@@ -47,10 +47,10 @@ class _FakeSubstrate:
             query=query, results=(ScoredBelief(belief=b, score=0.9),), as_of=query.as_of
         )
 
-    async def write(self, episode):  # pragma: no cover
+    async def write(self, episode): # pragma: no cover
         raise NotImplementedError
 
-    async def falsify(self, target, against=None) -> FalsificationVerdict:  # pragma: no cover
+    async def falsify(self, target, against=None) -> FalsificationVerdict: # pragma: no cover
         return FalsificationVerdict(target_id=str(target), superseded=False)
 
 
@@ -65,7 +65,7 @@ class _FakeGenerator:
     async def __call__(self, prompt: str) -> str:
         self.last_prompt = prompt
         for line in prompt.splitlines():
-            if line.startswith("- ") and "[valid_from:" in line:  # a fact line, not a rule
+            if line.startswith("- ") and "[valid_from:" in line: # a fact line, not a rule
                 return line[2:].split(" [")[0]
         return "I do not have that information."
 
@@ -77,7 +77,7 @@ def test_generator_plug_selects_by_name_and_carries_model(monkeypatch: pytest.Mo
     monkeypatch.delenv("COGNIFLOW_LLM_API_KEY", raising=False)
     monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
     g = create_generator("nvidia", api_key="x")
-    assert g.model == "minimaxai/minimax-m3"  # config-selected, model carried
+    assert g.model == "minimaxai/minimax-m3" # config-selected, model carried
 
 
 def test_generator_plug_fail_loud(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -85,9 +85,9 @@ def test_generator_plug_fail_loud(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("COGNIFLOW_LLM_API_KEY", raising=False)
     monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
     with pytest.raises(GeneratorError):
-        create_generator("nvidia")  # no key -> raise, never a silent no-op
+        create_generator("nvidia") # no key -> raise, never a silent no-op
     with pytest.raises(GeneratorError):
-        create_generator("does-not-exist", api_key="x")  # unknown name -> raise
+        create_generator("does-not-exist", api_key="x") # unknown name -> raise
 
 
 # ---- the constrained prompt (T2 plumbing + faithfulness T5) -----------------------------
@@ -96,10 +96,10 @@ def test_prompt_constrains_to_context_and_ignores_training() -> None:
     gen = _FakeGenerator()
     res = asyncio.run(generate_answer(_FakeSubstrate(), "Where is Tesla HQ?", gen, as_of=_dt(2018)))
     p = gen.last_prompt
-    assert "Do NOT use your own" in p and "TRUST THE CONTEXT" in p  # temporal-correctness rule
-    assert "do not have that information" in p.lower()  # faithfulness rule
-    assert "Palo Alto" in p and "Austin" not in p  # only the as-of context is in the prompt
-    assert "Palo Alto" in res.answer  # answered from context (not present-day training)
+    assert "Do NOT use your own" in p and "TRUST THE CONTEXT" in p # temporal-correctness rule
+    assert "do not have that information" in p.lower() # faithfulness rule
+    assert "Palo Alto" in p and "Austin" not in p # only the as-of context is in the prompt
+    assert "Palo Alto" in res.answer # answered from context (not present-day training)
 
 
 # ---- confidence (T3) + provenance (T4) carried into the answer --------------------------
@@ -108,11 +108,11 @@ def test_answer_carries_confidence_and_provenance() -> None:
     res = asyncio.run(
         generate_answer(_FakeSubstrate(), "Where is Tesla HQ?", _FakeGenerator(), as_of=_dt(2018))
     )
-    assert res.confidence == {"derived": 1}  # B: extraction floor not laundered
+    assert res.confidence == {"derived": 1} # B: extraction floor not laundered
     assert res.generator_model == "fake-model"
     d = res.to_dict()
     assert d["confidence"] == {"derived": 1}
-    assert d["facts"][0]["provenance"] == ["annual_report_2010#chunk0"]  # audit-traceable
+    assert d["facts"][0]["provenance"] == ["annual_report_2010#chunk0"] # audit-traceable
     assert d["facts"][0]["valid_at_source"] == "derived"
 
 

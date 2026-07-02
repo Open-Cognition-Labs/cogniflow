@@ -1,4 +1,4 @@
-"""Phase 1a integration: the real Graphiti+FalkorDB AsyncSubstrate, proven against
+"""milestone integration: the real Graphiti+FalkorDB AsyncSubstrate, proven against
 a live FalkorDB and LLM. Skipped automatically when either is absent (e.g. CI).
 
 THE heartbeat: the same question at as_of=T1 vs as_of=T2 returns different answers
@@ -156,7 +156,7 @@ def test_idempotent_under_retry() -> None:
                 "Acme Corp is headquartered in Boston", 2019,
             )
             await backend.write(episode)
-            await backend.write(episode)  # retry of the same fact
+            await backend.write(episode) # retry of the same fact
             results = (
                 await backend.read(
                     RetrievalQuery(

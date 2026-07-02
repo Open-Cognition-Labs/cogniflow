@@ -1,5 +1,5 @@
 # ruff: noqa: E501
-"""A deliberately confusable corpus - it does double duty (Slice C).
+"""A deliberately confusable corpus - it does double duty .
 
 - Many similar entities with the SAME predicate ("headquartered in") and overlapping cities
   (two companies both moved to Austin) so retrieval faces genuine near-ties -> the first real
@@ -68,8 +68,8 @@ EPISODES: list[Episode] = [
     _hq("lucid_hq", "Lucid Motors", "Newark", 2016),
     _hq("x_hq", "X Corp", "San Francisco", 2007),
     _hq("palantir_hq", "Palantir", "Denver", 2020),
-    _hq("oracle_hq_new", "Oracle", "Austin", 2020),   # Oracle moved to Austin...
-    _hq("tesla_hq_new", "Tesla", "Austin", 2021),     # ...and so did Tesla (the collision)
+    _hq("oracle_hq_new", "Oracle", "Austin", 2020), # Oracle moved to Austin...
+    _hq("tesla_hq_new", "Tesla", "Austin", 2021), # ...and so did Tesla (the collision)
     _makes("tesla_model3", "Tesla", "the Model 3 electric car", 2017),
     _makes("rivian_r1t", "Rivian", "the R1T electric truck", 2021),
 ]

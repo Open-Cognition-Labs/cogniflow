@@ -30,8 +30,8 @@ class _FakeCrossEncoder:
 
 
 def test_reranker_is_registered_but_off_by_default() -> None:
-    assert "reranker" in available_policies("retrieval")  # plug is available
-    assert DEFAULT_POLICIES["retrieval"] == "default"  # ...but OFF by default (GPU-free path)
+    assert "reranker" in available_policies("retrieval") # plug is available
+    assert DEFAULT_POLICIES["retrieval"] == "default" # ...but OFF by default (GPU-free path)
 
 
 def test_reranker_policy_reorders_by_cross_encoder_score() -> None:
@@ -43,8 +43,8 @@ def test_reranker_policy_reorders_by_cross_encoder_score() -> None:
     ]
     q = RetrievalQuery(text="Where is Tesla headquartered", top_k=3)
     ranked = policy.rank(q, beliefs)
-    assert ranked[0].belief.id == "tesla"  # the query's entity floats to #1
-    assert ranked[0].score >= (ranked[1].score or 0)  # scores are descending
+    assert ranked[0].belief.id == "tesla" # the query's entity floats to #1
+    assert ranked[0].score >= (ranked[1].score or 0) # scores are descending
 
 
 def test_reranker_policy_via_registry_with_injected_encoder() -> None:
@@ -63,13 +63,13 @@ def test_create_reranker_fail_loud(monkeypatch: pytest.MonkeyPatch) -> None:
                 "COGNIFLOW_LLM_API_KEY", "NVIDIA_API_KEY"):
         monkeypatch.delenv(var, raising=False)
     with pytest.raises(RerankerError):
-        create_reranker("nvidia-rerank")  # no key -> raise, never a silent no-op
+        create_reranker("nvidia-rerank") # no key -> raise, never a silent no-op
     with pytest.raises(RerankerError):
-        create_reranker("made-up-reranker")  # unknown name -> raise
+        create_reranker("made-up-reranker") # unknown name -> raise
 
 
 def test_nvidia_reranker_constructs_without_network() -> None:
     r = create_reranker("nvidia-rerank", api_key="x")
     assert isinstance(r, NvidiaReranker)
     assert r.model == "nvidia/rerank-qa-mistral-4b"
-    assert "bge-reranker-v2-m3" in available_rerankers()  # the documented self-hosted default
+    assert "bge-reranker-v2-m3" in available_rerankers() # the documented self-hosted default

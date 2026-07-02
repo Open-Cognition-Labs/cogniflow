@@ -14,11 +14,11 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: {
-    default: "Cogniflow — the auditable, self-hostable belief ledger for agents",
-    template: "%s — Cogniflow",
+    default: "Cogniflow - the auditable, self-hostable belief ledger for agents",
+    template: "%s - Cogniflow",
   },
   description:
-    "Temporally-correct context and cited answers for agentic RAG. Ask what your agent believed at any past moment — and prove it. Self-hostable, in your own VPC.",
+    "Temporally-correct context and cited answers for agentic RAG. Ask what your agent believed at any past moment - and prove it. Self-hostable, in your own VPC.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

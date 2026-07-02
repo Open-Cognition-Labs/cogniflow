@@ -2,13 +2,13 @@
 """Real multi-framework benchmark: Cogniflow vs the RAG field, every number from a live run.
 
 Systems (same fictional corpus, same NVIDIA MiniMax LLM for parity):
-  - Cogniflow           temporal, as-of aware (generate_answer with as_of)
-  - Graphiti-substrate  the SAME temporal store queried WITHOUT the as-of layer (ablation) -
+ - Cogniflow temporal, as-of aware (generate_answer with as_of)
+ - Graphiti-substrate the SAME temporal store queried WITHOUT the as-of layer (ablation) -
                         "the temporal graph very related to Cogniflow" - shows the delta the
                         as-of layer adds even over its own substrate
-  - LlamaIndex          vector RAG (NVIDIA embeddings)
-  - LangChain           BM25 RAG + NVIDIA ChatOpenAI
-  - Haystack            BM25 RAG + NVIDIA OpenAIGenerator
+ - LlamaIndex vector RAG (NVIDIA embeddings)
+ - LangChain BM25 RAG + NVIDIA ChatOpenAI
+ - Haystack BM25 RAG + NVIDIA OpenAIGenerator
 
 Corpus is FICTIONAL on purpose (no LLM can answer as-of from training). Two panels:
 STANDARD (stable facts -> everyone ties) and AS-OF (past dates -> only the temporal, as-of
@@ -73,7 +73,7 @@ def retry(fn, attempts=8):
             time.sleep(min(2**i, 30))
 
 
-PACE_S = 1.5  # small inter-call pause to avoid bursting the shared rate limit
+PACE_S = 1.5 # small inter-call pause to avoid bursting the shared rate limit
 
 
 # ---- LangChain (BM25 + NVIDIA ChatOpenAI) ----------------------------------
@@ -166,7 +166,7 @@ async def main() -> None:
     async def cogniflow(q, as_of):
         return (await generate_answer(backend, q, gen, as_of=as_of)).answer
 
-    async def ablation(q, as_of):  # temporal store, but ignore as_of (no as-of layer)
+    async def ablation(q, as_of): # temporal store, but ignore as_of (no as-of layer)
         return (await generate_answer(backend, q, gen, as_of=None)).answer
 
     lc = make_langchain()
@@ -189,7 +189,7 @@ async def main() -> None:
         for attempt in range(15):
             try:
                 return (await fn(q, as_of)) if mode == "async" else fn(q)
-            except Exception as e:  # noqa: BLE001
+            except Exception as e: # noqa: BLE001
                 last = e
                 await asyncio.sleep(min(2**attempt, 60))
         raise RuntimeError(f"benchmark cell failed after retries: {q!r}") from last
@@ -207,7 +207,7 @@ async def main() -> None:
                 await asyncio.sleep(PACE_S)
             panels[panel] = {"n": len(rows), "score": sum(r["hit"] for r in rows), "rows": rows}
         results.append({"name": name, "kind": kind, **panels})
-        print(f"{name:32s} standard {panels['standard']['score']}/{panels['standard']['n']}   as-of {panels['as_of']['score']}/{panels['as_of']['n']}")
+        print(f"{name:32s} standard {panels['standard']['score']}/{panels['standard']['n']} as-of {panels['as_of']['score']}/{panels['as_of']['n']}")
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     # Integrity stamp: sha256 of the systems array in canonical form (sorted keys, compact). A

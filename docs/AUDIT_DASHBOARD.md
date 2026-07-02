@@ -1,4 +1,4 @@
-# The audit/replay dashboard (Slice B) - the moat made visible
+# The audit/replay dashboard - the moat made visible
 
 A **read-only** window onto the belief ledger for a **human** (a compliance/audit reader who
 cannot call a coroutine): what is true now, the life of any fact, what the system believed at
@@ -47,7 +47,7 @@ a fact whose supersession was *learned* in June 2022 is fetched three ways -
 its timeline shows the stored `invalid_at` (ground truth), replay at S=2021 shows it with
 `invalid_at = null` (un-known), and replay at S=2023 drops it from the live set (no longer the
 current truth, correctly). Controlled beliefs are used because the system-time axis is
-degenerate on freshly-ingested live data - the same reason the engine's Phase-4 tests do.
+degenerate on freshly-ingested live data - the same reason the engine's milestone tests do.
 
 ## Provenance resolution (G1) - correct, never plausible
 
@@ -80,9 +80,9 @@ survived to A.3's machine output, now visible to a person.
 ## Run it (self-hostable, loopback by default)
 
 ```python
-from cogniflow.serving import create_audit_app          # FastAPI app over an AuditLedger
+from cogniflow.serving import create_audit_app # FastAPI app over an AuditLedger
 app = create_audit_app(backend)
-# or: cogniflow.serving.audit.run(backend)  # uvicorn on 127.0.0.1:8078
+# or: cogniflow.serving.audit.run(backend) # uvicorn on 127.0.0.1:8078
 ```
 
 Behind the `[serve]` extra. Read-only and local: the ledger never leaves the reader's

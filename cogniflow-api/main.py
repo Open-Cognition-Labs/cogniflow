@@ -6,15 +6,15 @@ answer + the audit/replay ledger. Each browser session is an isolated FalkorDB g
 
 Run (needs FalkorDB + .env with COGNIFLOW_LLM_* and COGNIFLOW_EMBEDDER_API_KEY):
     pip install -e ".[all,serve]"
-    python cogniflow-api/main.py            # loopback + open (dev); warns loudly it is open
+    python cogniflow-api/main.py # loopback + open (dev); warns loudly it is open
 
 Baseline security (safe in a TRUSTED environment, NOT enterprise-ready - see SECURITY.md):
-    COGNIFLOW_API_TOKENS=tok1,tok2          # require `Authorization: Bearer <tok>` on every route
-                                           #   except /api/health; each session is scoped to the
-                                           #   token that created it (no cross-tenant read/reset)
-    COGNIFLOW_BIND_HOST=0.0.0.0            # expose off-host (refuses if open + non-loopback)
-    COGNIFLOW_RATE_LIMIT_PER_MIN=30         # per-token/IP limit on the LLM/embedder endpoints
-    COGNIFLOW_MAX_UPLOAD_BYTES=10485760     # upload cap; COGNIFLOW_PORT sets the port
+    COGNIFLOW_API_TOKENS=tok1,tok2 # require `Authorization: Bearer <tok>` on every route
+                                           # except /api/health; each session is scoped to the
+                                           # token that created it (no cross-tenant read/reset)
+    COGNIFLOW_BIND_HOST=0.0.0.0 # expose off-host (refuses if open + non-loopback)
+    COGNIFLOW_RATE_LIMIT_PER_MIN=30 # per-token/IP limit on the LLM/embedder endpoints
+    COGNIFLOW_MAX_UPLOAD_BYTES=10485760 # upload cap; COGNIFLOW_PORT sets the port
 """
 
 from __future__ import annotations
@@ -91,7 +91,7 @@ _SESSIONS: dict[str, dict] = {}
 _GENERATOR = None
 
 
-# ---- security: baseline (Phase 4) ------------------------------------------
+# ---- security: baseline ------------------------------------------
 # "Safe to run in a TRUSTED ENVIRONMENT" - NOT enterprise-ready. This layer adds bearer-token
 # auth, token-scoped session access (a caller touches only sessions its token owns), rate limits
 # on the LLM/embedder endpoints, upload caps, and loopback-by-default binding. Enterprise controls
@@ -99,10 +99,10 @@ _GENERATOR = None
 # SCOPE by design; see SECURITY.md for the honest boundary.
 _LOG = logging.getLogger("cogniflow.api")
 _AUTH_TOKENS = {t.strip() for t in os.getenv("COGNIFLOW_API_TOKENS", "").split(",") if t.strip()}
-_AUTH_OPEN = not _AUTH_TOKENS  # no tokens configured -> unauthenticated (dev) mode
+_AUTH_OPEN = not _AUTH_TOKENS # no tokens configured -> unauthenticated (dev) mode
 _BIND_HOST = os.getenv("COGNIFLOW_BIND_HOST", "127.0.0.1")
 _LOOPBACK = {"127.0.0.1", "localhost", "::1", ""}
-_MAX_UPLOAD = int(os.getenv("COGNIFLOW_MAX_UPLOAD_BYTES", str(10 * 1024 * 1024)))  # 10 MB
+_MAX_UPLOAD = int(os.getenv("COGNIFLOW_MAX_UPLOAD_BYTES", str(10 * 1024 * 1024))) # 10 MB
 _ALLOWED_SUFFIXES = {".pdf", ".md", ".markdown", ".txt"}
 _RATE_LIMIT = int(os.getenv("COGNIFLOW_RATE_LIMIT_PER_MIN", "30"))
 _RATE_WINDOW = 60.0
@@ -207,10 +207,10 @@ def _safe_config(config: dict) -> dict:
     }
 
 
-# ---- shared state (F5): multi-replica-safe sessions + rate limits ---------------------------
+# ---- shared state : multi-replica-safe sessions + rate limits ---------------------------
 # COGNIFLOW_SHARED_STATE=1 moves session ownership/config and rate counters into Redis (the
 # FalkorDB server speaks the Redis protocol - zero extra infrastructure), so any replica can
-# serve any session and the Phase-4 scoping semantics hold across process death. Heavy objects
+# serve any session and the milestone scoping semantics hold across process death. Heavy objects
 # (backend connections, generators) remain per-process caches, rebuilt from the shared config
 # via a version stamp. Fail-loud: shared mode with an unreachable store refuses to start -
 # never a silent fall back to process-local state (which would quietly void the guarantee).
@@ -248,7 +248,7 @@ def _store_put(sid: str, owner: str | None, config: dict) -> int:
     return rec["v"]
 
 
-# ---- observability floor (F5 T5): per-replica counters ---------------------------------------
+# ---- observability floor : per-replica counters ---------------------------------------
 _METRICS: dict[str, int] = {}
 
 
@@ -267,7 +267,7 @@ def _parse_dt(value: str | None) -> datetime | None:
 def _generator():
     global _GENERATOR
     if _GENERATOR is None:
-        _GENERATOR = create_generator_from_env()  # fail-loud if no key
+        _GENERATOR = create_generator_from_env() # fail-loud if no key
     return _GENERATOR
 
 
@@ -361,7 +361,7 @@ class TextIngest(BaseModel):
 class PluginConfig(BaseModel):
     session_id: str
     embedder: str | None = None
-    reranker: str | None = None  # "" / None = off (default retrieval policy)
+    reranker: str | None = None # "" / None = off (default retrieval policy)
     # custom provider / local model (OpenAI-compatible base_url + model + key). Covers both
     # "bring your own API provider" and "point at a local model" (e.g. Ollama/vLLM).
     embedder_model: str | None = None
@@ -370,7 +370,7 @@ class PluginConfig(BaseModel):
     reranker_model: str | None = None
     reranker_base_url: str | None = None
     reranker_api_key: str | None = None
-    # generation model (AI model plugin) — selectable + custom/local endpoint
+    # generation model (AI model plugin) - selectable + custom/local endpoint
     generator: str | None = None
     generator_model: str | None = None
     generator_base_url: str | None = None
@@ -438,7 +438,7 @@ async def plugins() -> dict:
 async def new_session(token: str | None = Depends(require_auth)) -> dict:
     sid = uuid.uuid4().hex[:12]
     _SESSIONS[sid] = {"config": {}, "backend": None, "owner": token}
-    _store_put(sid, token, {})  # shared mode: ownership visible to every replica
+    _store_put(sid, token, {}) # shared mode: ownership visible to every replica
     return {"session_id": sid}
 
 
@@ -467,7 +467,7 @@ async def set_config(cfg: PluginConfig, token: str | None = Depends(require_auth
             c["retrieval_policy"] = "reranker"
             c["retrieval_params"] = params
     if cfg.generator == "managed":
-        c.pop("gen", None)  # back to the platform default (env-configured)
+        c.pop("gen", None) # back to the platform default (env-configured)
         sess["generator"] = None
     elif cfg.generator:
         c["gen"] = {
@@ -476,7 +476,7 @@ async def set_config(cfg: PluginConfig, token: str | None = Depends(require_auth
             "base_url": cfg.generator_base_url,
             "api_key": cfg.generator_api_key,
         }
-        sess["generator"] = None  # rebuild the generator on next answer
+        sess["generator"] = None # rebuild the generator on next answer
     # force rebuild with new config on next use
     if sess["backend"] is not None:
         await sess["backend"].close()
@@ -503,7 +503,7 @@ async def ingest(
         raise HTTPException(
             415, f"unsupported file type {suffix or '(none)'}; allowed: {sorted(_ALLOWED_SUFFIXES)}"
         )
-    data = await file.read(_MAX_UPLOAD + 1)  # bounded read (never load an unbounded file)
+    data = await file.read(_MAX_UPLOAD + 1) # bounded read (never load an unbounded file)
     if len(data) > _MAX_UPLOAD:
         raise HTTPException(413, f"file too large; limit is {_MAX_UPLOAD} bytes")
     backend = await _backend(session_id)
@@ -638,8 +638,8 @@ async def audit_timeline(
 # multi-year slider genuinely flips Boston->Denver at the 2022 correction. The REPLAY itself is
 # the real engine (system_time_replay + reconstruct); only the fixture data is seeded.
 _DEMO_SID = "demo_acme"
-_C2019 = "2019-01-01T00:00:00+00:00"  # 2019 filing: learned + valid
-_C2022 = "2022-01-01T00:00:00+00:00"  # 2022 filing: learned + valid; Boston ends here
+_C2019 = "2019-01-01T00:00:00+00:00" # 2019 filing: learned + valid
+_C2022 = "2022-01-01T00:00:00+00:00" # 2022 filing: learned + valid; Boston ends here
 _BOSTON_ID = "demo-belief-boston"
 _DENVER_ID = "demo-belief-denver"
 _EP_BOSTON = "demo-ep-boston-2019"

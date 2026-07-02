@@ -20,11 +20,11 @@ const asofData: SysDatum[] = systems.map((s) => ({ name: displayName(s.name), sc
 const boundaries = [
   {
     t: "Provider-agnostic by design",
-    d: "The LLM, embedder, reranker, and graph backend are plugins — bring a hosted API or a local model. Nothing is hard-wired to a vendor. The bi-temporal platform is the product.",
+    d: "The LLM, embedder, reranker, and graph backend are plugins - bring a hosted API or a local model. Nothing is hard-wired to a vendor. The bi-temporal platform is the product.",
   },
   {
     t: "Structured input is deterministic",
-    d: "Facts you assert get precise temporal validity. Facts extracted from raw prose are as good as the extraction model — each served fact is confidence-labeled, so nothing is laundered.",
+    d: "Facts you assert get precise temporal validity. Facts extracted from raw prose are as good as the extraction model - each served fact is confidence-labeled, so nothing is laundered.",
   },
   {
     t: "Read-only audit surface",
@@ -50,7 +50,7 @@ export default function Home() {
           <Reveal delay={0.1}>
             <p className="text-subhead mt-6 max-w-[62ch]">
               A complete RAG platform with a memory that remembers <em>when</em>. Upload any
-              document, ask what your system believed at any past moment &mdash; and prove it.
+              document, ask what your system believed at any past moment - and prove it.
               Temporally-correct context and cited answers, in your own environment, with any model.
             </p>
           </Reveal>
@@ -74,7 +74,7 @@ export default function Home() {
               <dl className="space-y-3 text-[15px]">
                 <Row k="Cogniflow · as of 2015" v={clean(H.past_2015.answer)} good />
                 <Row k="Cogniflow · now" v={clean(H.now.answer)} good />
-                <Row k="Plain RAG · as of 2015" v="Can't answer it at all — no temporal axis." bad />
+                <Row k="Plain RAG · as of 2015" v="Can't answer it at all - no temporal axis." bad />
               </dl>
             </div>
           </Reveal>
@@ -101,7 +101,7 @@ export default function Home() {
       {/* CAPABILITY CLASSES: Plain vs Temporal vs Bitemporal */}
       <Section eyebrow="What sets it apart" title="Plain RAG. Temporal RAG. Bitemporal RAG.">
         <p className="text-subhead max-w-[64ch]">
-          Recall is table stakes &mdash; every RAG answers &ldquo;what&rsquo;s true now.&rdquo;
+          Recall is table stakes - every RAG answers &ldquo;what&rsquo;s true now.&rdquo;
           A temporal RAG can answer &ldquo;what was true then.&rdquo; Only a <b>bitemporal</b>
           {" "}platform also answers <b>what the system knew</b>, when a fact changed, and can
           replay a belief that was corrected later. That last class is Cogniflow.
@@ -112,22 +112,22 @@ export default function Home() {
       </Section>
 
       {/* BENCHMARK - real names, lead with the as-of difference */}
-      <Section eyebrow="Real benchmark — every number from a live run" title="Where it isn't close">
+      <Section eyebrow="Real benchmark - every number from a live run" title="Where it isn't close">
         <p className="text-subhead max-w-[64ch]">
-          Same corpus, same model, same embeddings across every system &mdash; only the memory
+          Same corpus, same model, same embeddings across every system - only the memory
           differs. On current facts, everyone ties. On <b>as-of</b> questions (what was true at a
           past date), only Cogniflow answers correctly.
         </p>
         <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
           <div className="rounded-xl border border-border bg-card p-6 elev">
-            <div className="mb-1 text-sm font-semibold">As-of questions — score out of {bn}</div>
+            <div className="mb-1 text-sm font-semibold">As-of questions - score out of {bn}</div>
             <p className="mb-4 text-xs text-muted-foreground">The past, answered correctly.</p>
             <FrameworkChart data={asofData} n={bn} />
           </div>
           <div className="flex flex-col justify-center gap-3">
             <div className="rounded-lg border border-border bg-card p-4 elev">
               <div className="text-xs text-muted-foreground">Current-fact questions</div>
-              <div className="mt-1 text-sm text-foreground">Everyone ties — recall is table stakes.</div>
+              <div className="mt-1 text-sm text-foreground">Everyone ties - recall is table stakes.</div>
             </div>
             <div className="ring-glow rounded-lg border border-brand/30 bg-brand/[0.05] p-4">
               <div className="text-xs text-muted-foreground">As-of questions</div>

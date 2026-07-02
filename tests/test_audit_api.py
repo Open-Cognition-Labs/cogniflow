@@ -1,4 +1,4 @@
-"""Audit/replay dashboard API (Slice B) - CI-safe. The centerpiece un-knowing test uses
+"""Audit/replay dashboard API - CI-safe. The centerpiece un-knowing test uses
 controlled beliefs + the REAL core audit functions (the system-time axis is degenerate on
 live data, where everything is learned 'now'), so the invariant is asserted deterministically.
 No infra.
@@ -39,20 +39,20 @@ BOSTON = Belief(
     created_at=_dt(2019),
     valid_at=_dt(2019),
     invalid_at=_dt(2022),
-    expired_at=_dt(2022, 6),  # the invalidation was learned in June 2022
+    expired_at=_dt(2022, 6), # the invalidation was learned in June 2022
     provenance=("ep-v1", "ep-missing"),
     metadata={"valid_at_source": "provided", "superseded_by": "denver"},
 )
 DENVER = Belief(
     id="denver",
     statement="Acme Corp is headquartered in Denver",
-    created_at=_dt(2022, 6),  # learned June 2022
+    created_at=_dt(2022, 6), # learned June 2022
     valid_at=_dt(2022),
     provenance=("ep-v2",),
     metadata={"valid_at_source": "document:mtime"},
 )
 BELIEFS = [BOSTON, DENVER]
-NAMES = {"ep-v1": "acme_report_v1#chunk0", "ep-v2": "acme_report_v2#chunk0"}  # ep-missing absent
+NAMES = {"ep-v1": "acme_report_v1#chunk0", "ep-v2": "acme_report_v2#chunk0"} # ep-missing absent
 
 
 class _FakeLedger:
@@ -92,14 +92,14 @@ def client() -> TestClient:
 def test_centerpiece_replay_un_knows_the_future(client: TestClient) -> None:
     # GROUND TRUTH: Boston really was superseded - the timeline shows its stored invalid_at.
     truth = client.get("/audit/timeline/boston").json()["belief"]
-    assert truth["invalid_at"] is not None  # the supersession is real, not absent data
+    assert truth["invalid_at"] is not None # the supersession is real, not absent data
 
     # S = 2021, BEFORE the supersession was LEARNED (June 2022): the future must not leak back.
     early = client.get("/audit/replay", params={"system_time": "2021-01-01"}).json()["beliefs"]
     boston = [b for b in early if b["belief_id"] == "boston"]
     assert boston, "Boston was the live truth at S=2021"
-    assert boston[0]["invalid_at"] is None  # UN-KNOWN: the stored invalid_at is hidden at S=2021
-    assert not [b for b in early if b["belief_id"] == "denver"]  # Denver not yet known at 2021
+    assert boston[0]["invalid_at"] is None # UN-KNOWN: the stored invalid_at is hidden at S=2021
+    assert not [b for b in early if b["belief_id"] == "denver"] # Denver not yet known at 2021
 
     # S = 2023, AFTER: Boston is no longer the system's LIVE truth (correctly dropped from the
     # live replay); Denver is. (The superseded fact still lives in the timeline/bitemporal view.)
@@ -111,14 +111,14 @@ def test_centerpiece_replay_un_knows_the_future(client: TestClient) -> None:
 def test_event_time_axis_changes_with_as_of(client: TestClient) -> None:
     at_2020 = client.get("/audit/event", params={"as_of": "2020-01-01"}).json()["beliefs"]
     at_2023 = client.get("/audit/event", params={"as_of": "2023-01-01"}).json()["beliefs"]
-    assert [b["belief_id"] for b in at_2020] == ["boston"]  # only Boston was true in 2020
-    assert [b["belief_id"] for b in at_2023] == ["denver"]  # Denver by 2023
+    assert [b["belief_id"] for b in at_2020] == ["boston"] # only Boston was true in 2020
+    assert [b["belief_id"] for b in at_2023] == ["denver"] # Denver by 2023
 
 
 def test_valid_at_source_visible_to_the_human(client: TestClient) -> None:
     facts = client.get("/audit/current").json()["beliefs"]
     denver = [b for b in facts if b["belief_id"] == "denver"][0]
-    assert denver["valid_at_source"] == "derived"  # confidence surfaced (#6)
+    assert denver["valid_at_source"] == "derived" # confidence surfaced (#6)
     assert denver["valid_at_source_raw"] == "document:mtime"
 
 
@@ -135,7 +135,7 @@ def test_provenance_resolves_names_and_shows_uuid_when_unresolvable(client: Test
 def test_timeline_view_has_belief_and_trace(client: TestClient) -> None:
     body = client.get("/audit/timeline/boston").json()
     assert body["belief"]["statement"].endswith("Boston")
-    assert body["belief"]["valid_at_source"] == "authoritative"  # 'provided' -> authoritative
+    assert body["belief"]["valid_at_source"] == "authoritative" # 'provided' -> authoritative
     assert body["trace"]["superseded_by_belief"] == "denver"
     assert client.get("/audit/timeline/nope").status_code == 404
 
@@ -150,4 +150,4 @@ def test_dashboard_is_served(client: TestClient) -> None:
     r = client.get("/")
     assert r.status_code == 200
     assert "Audit Dashboard" in r.text
-    assert "/audit/replay" in r.text  # the dashboard drives the centerpiece off replay
+    assert "/audit/replay" in r.text # the dashboard drives the centerpiece off replay

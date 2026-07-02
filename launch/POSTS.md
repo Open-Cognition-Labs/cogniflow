@@ -1,4 +1,4 @@
-# Launch post drafts (per venue) - F4 T1
+# Launch post drafts (per venue) - milestone
 
 *Drafts only. Publish after: repo public, CI badge green on a real PR, claims audit re-run on
 the public HEAD. Every post funnels to the same 60-second proof.*

@@ -84,7 +84,7 @@ def make_record_observation_tool(queue: WriteBackQueue, group_id: str) -> Functi
 
 
 def make_verify_fact_tool(substrate: AsyncSubstrate, policy: FalsificationPolicy) -> FunctionTool:
-    """Build a read-only ``verify_fact`` tool (Phase 5, seam c).
+    """Build a read-only ``verify_fact`` tool .
 
     It reads candidate beliefs and runs the (LLM) FalsificationPolicy to advise whether
     a stated fact is contradicted/superseded. It NEVER writes: to record a correction

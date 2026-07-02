@@ -5,7 +5,7 @@ canonical backend (Graphiti) is async, while the no-op backend and conformance s
 are simplest to express synchronously. A backend implements exactly one of them.
 
 Both are ``runtime_checkable`` Protocols, so ``isinstance(obj, Substrate)`` checks
-structural conformance (method presence) at runtime — used by the conformance harness.
+structural conformance (method presence) at runtime - used by the conformance harness.
 """
 
 from __future__ import annotations

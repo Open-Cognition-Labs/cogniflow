@@ -65,12 +65,12 @@ def test_bge_m3_paraphrase_retrieves_the_right_fact() -> None:
         except Exception:
             pass
         cfg = GraphitiFalkorDBConfig.from_env(group_id=group)
-        cfg.embedder = "bge-m3"  # real semantic embedder
+        cfg.embedder = "bge-m3" # real semantic embedder
         backend = GraphitiFalkorDBBackend(cfg)
         await backend.setup()
         try:
             await ingest_bundle(backend, BUNDLE / "v1")
-            await ingest_bundle(backend, BUNDLE / "v2")  # current = 28-day
+            await ingest_bundle(backend, BUNDLE / "v2") # current = 28-day
             # a paraphrase that shares essentially no keywords with the stored statement
             res = await serve_context(
                 backend, "What is the rolling window for our core engagement metric?", top_k=3

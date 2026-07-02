@@ -1,6 +1,6 @@
 """Conformance harness: the gate any Substrate / AsyncSubstrate must pass.
 
-Phase 0 shipped a sync stub. Phase 1 adds the async driver, because the canonical
+milestone shipped a sync stub. milestone adds the async driver, because the canonical
 backend (Graphiti/FalkorDB) is asynchronous and ``runtime_checkable`` Protocols
 only check method *names*, not async-ness: ``isinstance(async_backend, Substrate)``
 returns True (a false positive). The harness therefore routes by
@@ -8,7 +8,7 @@ returns True (a false positive). The harness therefore routes by
 sync checks (or a sync backend through the async checks), so a backend is always
 graded by a driver that actually awaited it.
 
-Phase-1 checks are still structural/type-level. Behavioral conformance
+milestone checks are still structural/type-level. Behavioral conformance
 (bi-temporal correctness, falsification semantics) lands with the FalkorDB backend.
 """
 
@@ -161,7 +161,7 @@ def assert_conforms(substrate: Any) -> None:
     """Raise ``AssertionError`` listing any failed sync conformance checks."""
     failures = [r for r in run_conformance(substrate) if not r.passed]
     if failures:
-        lines = "\n".join(f"  - {r.name}: {r.detail}" for r in failures)
+        lines = "\n".join(f" - {r.name}: {r.detail}" for r in failures)
         raise AssertionError(f"Substrate failed conformance:\n{lines}")
 
 
@@ -169,5 +169,5 @@ async def assert_conforms_async(substrate: Any) -> None:
     """Raise ``AssertionError`` listing any failed async conformance checks."""
     failures = [r for r in await run_conformance_async(substrate) if not r.passed]
     if failures:
-        lines = "\n".join(f"  - {r.name}: {r.detail}" for r in failures)
+        lines = "\n".join(f" - {r.name}: {r.detail}" for r in failures)
         raise AssertionError(f"AsyncSubstrate failed conformance:\n{lines}")

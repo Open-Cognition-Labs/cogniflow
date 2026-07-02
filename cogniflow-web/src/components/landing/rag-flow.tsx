@@ -14,7 +14,7 @@ import {
 import { useEffect, useState, type ReactNode } from "react";
 
 type Stage = {
-  phase: string;
+  stage: string;
   title: string;
   desc: string;
   icon: ReactNode;
@@ -22,14 +22,14 @@ type Stage = {
 };
 
 const STAGES: Stage[] = [
-  { phase: "Ingest", title: "Documents in", desc: "Any PDF, markdown, or text — with the date each fact was true.", icon: <FileText className="size-5" /> },
-  { phase: "Ingest", title: "Parse & chunk", desc: "Structure-preserving chunks; tables and sections kept intact.", icon: <Scissors className="size-5" /> },
-  { phase: "Ingest", title: "Embed", desc: "Semantic vectors for meaning-based recall.", icon: <Boxes className="size-5" /> },
-  { phase: "Memory", title: "Bi-temporal knowledge graph", desc: "Facts stored bi-temporally — when they were true, and when we learned them. The core.", icon: <Network className="size-5" />, hub: true },
-  { phase: "Answer", title: "As-of retrieval", desc: "Filter context to the moment you ask about — the past, correctly un-known.", icon: <Clock className="size-5" /> },
-  { phase: "Answer", title: "Rerank", desc: "Optional cross-encoder sharpens ranking — on by evidence.", icon: <ArrowDownUp className="size-5" /> },
-  { phase: "Answer", title: "Grounded generation", desc: "Answer only from the retrieved facts — no leaking the present into the past.", icon: <MessageSquareText className="size-5" /> },
-  { phase: "Answer", title: "Cited answer", desc: "Every claim traces to a fact, and every fact to a document.", icon: <FileCheck2 className="size-5" /> },
+  { stage: "Ingest", title: "Documents in", desc: "Any PDF, markdown, or text - with the date each fact was true.", icon: <FileText className="size-5" /> },
+  { stage: "Ingest", title: "Parse & chunk", desc: "Structure-preserving chunks; tables and sections kept intact.", icon: <Scissors className="size-5" /> },
+  { stage: "Ingest", title: "Embed", desc: "Semantic vectors for meaning-based recall.", icon: <Boxes className="size-5" /> },
+  { stage: "Memory", title: "Bi-temporal knowledge graph", desc: "Facts stored bi-temporally - when they were true, and when we learned them. The core.", icon: <Network className="size-5" />, hub: true },
+  { stage: "Answer", title: "As-of retrieval", desc: "Filter context to the moment you ask about - the past, correctly un-known.", icon: <Clock className="size-5" /> },
+  { stage: "Answer", title: "Rerank", desc: "Optional cross-encoder sharpens ranking - on by evidence.", icon: <ArrowDownUp className="size-5" /> },
+  { stage: "Answer", title: "Grounded generation", desc: "Answer only from the retrieved facts - no leaking the present into the past.", icon: <MessageSquareText className="size-5" /> },
+  { stage: "Answer", title: "Cited answer", desc: "Every claim traces to a fact, and every fact to a document.", icon: <FileCheck2 className="size-5" /> },
 ];
 
 const STEP_MS = 950;
@@ -115,7 +115,7 @@ export function RagFlow() {
               >
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-brand">
-                    {s.phase}
+                    {s.stage}
                   </span>
                   <span className="text-xs text-muted-foreground">step {i + 1}</span>
                   {!reduce && on && (

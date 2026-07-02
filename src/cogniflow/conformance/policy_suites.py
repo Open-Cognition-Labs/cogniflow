@@ -115,7 +115,7 @@ def check_falsification_policy(policy: Any) -> list[CheckResult]:
 def check_falsification_determinism(policy: Any) -> list[CheckResult]:
     """Determinism is asserted only of policies that CLAIM it (B2 two-tier).
 
-    The LLM-driven falsification policy (Phase 5) is not deterministic and is exempt
+    The LLM-driven falsification policy is not deterministic and is exempt
     from this suite; it must still pass ``check_falsification_policy`` (the invariants).
     """
     results, check = _checker()
@@ -161,5 +161,5 @@ def run_policy_conformance(family: str, policy: Any) -> list[CheckResult]:
 def assert_policy_conforms(family: str, policy: Any) -> None:
     failures = [r for r in run_policy_conformance(family, policy) if not r.passed]
     if failures:
-        lines = "\n".join(f"  - {r.name}: {r.detail}" for r in failures)
+        lines = "\n".join(f" - {r.name}: {r.detail}" for r in failures)
         raise AssertionError(f"{family} policy failed conformance:\n{lines}")

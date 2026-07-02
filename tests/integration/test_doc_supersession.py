@@ -1,4 +1,4 @@
-"""Slice A.2 integration: document (PDF) front door -> cross-version supersession +
+"""module integration: document (PDF) front door -> cross-version supersession +
 as-of replay, through the engine's prose extraction. Live FalkorDB + LLM; skipped without.
 """
 
@@ -78,7 +78,7 @@ def test_document_front_door_supersession_and_replay() -> None:
             invalidated = [i for r in r2 for i in r.invalidated_belief_ids]
             assert invalidated, "v2 document did not supersede the v1 fact"
             old = await EntityEdge.get_by_uuid(backend._driver, invalidated[0])
-            assert old.invalid_at is not None and old.expired_at is not None  # both stamps
+            assert old.invalid_at is not None and old.expired_at is not None # both stamps
 
             async def gen(prompt: str) -> str:
                 return str(await llm.acomplete(prompt))

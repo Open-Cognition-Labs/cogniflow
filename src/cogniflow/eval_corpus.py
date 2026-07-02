@@ -1,4 +1,4 @@
-"""The labeled eval corpus (F3 G1) - one corpus, three consumers.
+"""The labeled eval corpus - one corpus, three consumers.
 
 Serves: (1) verify_fact / LLMFalsificationPolicy recall-precision (the recalibration of the
 n=8 floor), (2) the F2 faithfulness checker's own precision/recall, (3) the expanded
@@ -155,7 +155,7 @@ def verify_cases() -> list[FalsificationCase]:
     return cases
 
 
-# ---- the faithfulness labeled set (F2 T5): claim-level ground truth -----------------------
+# ---- the faithfulness labeled set : claim-level ground truth -----------------------
 # Each case: served fact statements, one answer sentence, and whether that sentence is
 # supported by the facts (strict entailment - anything added is unsupported).
 FAITHFULNESS_CASES: list[tuple[list[str], str, bool]] = [

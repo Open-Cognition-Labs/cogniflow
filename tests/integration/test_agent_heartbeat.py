@@ -1,4 +1,4 @@
-"""Phase 1b acceptance #1 - THE heartbeat through the agent path.
+"""milestone acceptance #1 - THE heartbeat through the agent path.
 
 The first temporal eval scenario: one question, two as_of points, expected answers.
 Asked of a LlamaIndex ReActAgent whose only tool is the TemporalGraphRetriever (seam a)
@@ -6,7 +6,7 @@ with the TemporalValidityPostprocessor (seam b). Skipped when FalkorDB / LLM / l
 are absent (e.g. CI).
 
 This SCENARIO dict is the seed of the eval harness: later phases reuse the same
-shape (question + as_of points + expected) as the gate every phase must pass.
+shape (question + as_of points + expected) as the gate every stage must pass.
 """
 
 from __future__ import annotations

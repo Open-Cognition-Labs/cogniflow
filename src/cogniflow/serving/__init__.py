@@ -10,7 +10,7 @@ from __future__ import annotations
 __all__ = ["create_app", "build_mcp_server", "create_audit_app"]
 
 
-def __getattr__(name: str):  # lazy: importing serving must not require the optional extras
+def __getattr__(name: str): # lazy: importing serving must not require the optional extras
     if name == "create_app":
         from .http import create_app
 

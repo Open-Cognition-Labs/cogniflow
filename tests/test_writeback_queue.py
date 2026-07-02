@@ -1,12 +1,12 @@
 """Write-back queue invariants (CI-safe: stdlib + a fake AsyncSubstrate, no infra).
 
-Covers the deterministic half of Phase 2 acceptance:
-  - non-blocking enqueue (returns before ingestion completes)
-  - sequential per group_id
-  - idempotent under retry (no duplicate, via dedup-by-id) and retry-on-failure
-  - bounded backpressure (reject-with-signal, never block/drop)
-  - clean drain + freshness surface advances
-  - observability emits on every transition (P3 trace-emission contract)
+Covers the deterministic half of milestone acceptance:
+ - non-blocking enqueue (returns before ingestion completes)
+ - sequential per group_id
+ - idempotent under retry (no duplicate, via dedup-by-id) and retry-on-failure
+ - bounded backpressure (reject-with-signal, never block/drop)
+ - clean drain + freshness surface advances
+ - observability emits on every transition (P3 trace-emission contract)
 """
 
 from __future__ import annotations
@@ -39,13 +39,13 @@ class _FakeBackend:
             self._fail_times -= 1
             raise RuntimeError("transient ingestion error")
         self.order.append(episode.id)
-        self.episodes[episode.id] = episode  # dedup by stable id
+        self.episodes[episode.id] = episode # dedup by stable id
         return WriteReceipt(episode_id=episode.id, created_belief_ids=(episode.id,))
 
-    async def read(self, query: RetrievalQuery) -> RetrievalResult:  # pragma: no cover
+    async def read(self, query: RetrievalQuery) -> RetrievalResult: # pragma: no cover
         return RetrievalResult(query=query, results=(), as_of=query.as_of)
 
-    async def falsify(self, target, against=None) -> FalsificationVerdict:  # pragma: no cover
+    async def falsify(self, target, against=None) -> FalsificationVerdict: # pragma: no cover
         return FalsificationVerdict(target_id=str(target), superseded=False)
 
 
@@ -77,7 +77,7 @@ def test_enqueue_is_non_blocking() -> None:
             ack = queue.enqueue(_obs(1))
             assert ack.status == "queued"
             # write is gated open -> not ingested yet; freshness must still be None
-            await asyncio.sleep(0)  # let the worker start and block on the gate
+            await asyncio.sleep(0) # let the worker start and block on the gate
             assert queue.last_ingested_at("g") is None
             backend.gate.set()
             await queue.drain()
@@ -117,10 +117,10 @@ def test_idempotent_under_duplicate() -> None:
         queue = WriteBackQueue(factory)
         try:
             queue.enqueue(_obs(1))
-            queue.enqueue(_obs(1))  # same id -> dedup collapses to one stored fact
+            queue.enqueue(_obs(1)) # same id -> dedup collapses to one stored fact
             await queue.drain()
             assert len(backend.episodes) == 1
-            assert backend.write_count == 2  # both attempted, dedup made it harmless
+            assert backend.write_count == 2 # both attempted, dedup made it harmless
         finally:
             await queue.aclose()
 
@@ -129,7 +129,7 @@ def test_idempotent_under_duplicate() -> None:
 
 def test_retry_on_failure_then_success() -> None:
     async def run() -> None:
-        backend = _FakeBackend(fail_times=2)  # fails twice, succeeds on attempt 3
+        backend = _FakeBackend(fail_times=2) # fails twice, succeeds on attempt 3
 
         async def factory(_gid: str):
             return backend
@@ -148,18 +148,18 @@ def test_retry_on_failure_then_success() -> None:
 
 def test_bounded_backpressure_rejects_with_signal() -> None:
     async def run() -> None:
-        backend = _GatedBackend()  # never opens -> worker stuck on first write
+        backend = _GatedBackend() # never opens -> worker stuck on first write
 
         async def factory(_gid: str):
             return backend
 
         queue = WriteBackQueue(factory, max_pending_per_group=2)
         try:
-            assert queue.enqueue(_obs(1)).status == "queued"  # taken by worker, blocks
+            assert queue.enqueue(_obs(1)).status == "queued" # taken by worker, blocks
             await asyncio.sleep(0)
-            assert queue.enqueue(_obs(2)).status == "queued"  # fills queue (1/2)
-            assert queue.enqueue(_obs(3)).status == "queued"  # fills queue (2/2)
-            rejected = queue.enqueue(_obs(4))  # saturated
+            assert queue.enqueue(_obs(2)).status == "queued" # fills queue (1/2)
+            assert queue.enqueue(_obs(3)).status == "queued" # fills queue (2/2)
+            rejected = queue.enqueue(_obs(4)) # saturated
             assert rejected.status == "rejected"
             assert rejected.reason == "saturated"
         finally:
@@ -209,7 +209,7 @@ def test_observability_emits_reject_on_saturation() -> None:
             queue.enqueue(_obs(1))
             await asyncio.sleep(0)
             queue.enqueue(_obs(2))
-            queue.enqueue(_obs(3))  # saturated -> reject event
+            queue.enqueue(_obs(3)) # saturated -> reject event
         finally:
             await queue.aclose()
             observability.clear_sinks()
@@ -225,7 +225,7 @@ def test_dead_letters_are_observable() -> None:
         events: list[str] = []
         observability.clear_sinks()
         observability.add_sink(lambda name, payload: events.append(name))
-        backend = _FakeBackend(fail_times=5)  # always fails within max_retries
+        backend = _FakeBackend(fail_times=5) # always fails within max_retries
 
         async def factory(_gid: str):
             return backend
@@ -242,15 +242,15 @@ def test_dead_letters_are_observable() -> None:
         status = queue.freshness("g")
         assert status.degraded is True
         assert status.failed_count == 1
-        assert status.last_ingested_at is None  # never succeeded, and it says so honestly
-        assert "cogniflow.writeback.dead_letter" in events  # distinct event, not "fail"
+        assert status.last_ingested_at is None # never succeeded, and it says so honestly
+        assert "cogniflow.writeback.dead_letter" in events # distinct event, not "fail"
 
 
 def test_drain_waits_for_successful_retry() -> None:
     # D2: drain() must not return until the *successful retry* completes, not merely
     # the first attempt's task_done.
     async def run() -> None:
-        backend = _FakeBackend(fail_times=1)  # fails once, succeeds on retry
+        backend = _FakeBackend(fail_times=1) # fails once, succeeds on retry
 
         async def factory(_gid: str):
             return backend

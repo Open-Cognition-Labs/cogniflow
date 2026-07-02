@@ -4,7 +4,7 @@
 environment_. It is NOT enterprise-ready.** This document states exactly what is and is not
 protected, so the boundary is never oversold.
 
-## What Phase 4 added (the floor: "not dangerous to run")
+## What the security baseline provides (the floor: "not dangerous to run")
 
 The Playground API (`cogniflow-api/main.py`) previously had no authentication - any caller who
 could reach the port could read or wipe any session's graph. That day-one hole is closed:
@@ -31,7 +31,7 @@ With no `COGNIFLOW_API_TOKENS` set, the API runs **unauthenticated** and logs a 
 warning. This is acceptable **only on loopback for local development**. Do not expose an open
 API beyond localhost (the server refuses to, per the bind guard above).
 
-## What is explicitly NOT covered (Phase 6+ - the real enterprise road)
+## What is explicitly NOT covered
 
 Do not read "baseline security" as "enterprise-ready." These are deliberately out of scope:
 
@@ -47,7 +47,7 @@ Do not read "baseline security" as "enterprise-ready." These are deliberately ou
   with record-level erasure - a real architectural item, not a config flag.
 - **SOC2 / compliance posture** and full **observability** (tracing; only a `/metrics`
   counter floor exists).
-- **Horizontal scale is now partially addressed (F5), honestly scoped:** with
+- **Horizontal scale is now partially addressed, honestly scoped:** with
   `COGNIFLOW_SHARED_STATE=1`, session ownership/config and rate limits live in Redis and the
   write-back journal is shared (`RedisJournal`), proven by a two-replica test
   (`scripts/two_replica_proof.sh`). That makes the shell *production-deployable* behind a load
@@ -61,7 +61,7 @@ Do not read "baseline security" as "enterprise-ready." These are deliberately ou
 3. Set `COGNIFLOW_CORS_ORIGINS` to your exact web origin(s).
 4. Terminate TLS in front of the API (this server speaks plain HTTP); put it behind a
    reverse proxy / gateway and a network boundary (firewall/VPC).
-5. Treat this as **trusted-environment** software until the Phase 6+ enterprise controls land.
+5. Treat this as **trusted-environment** software until the enterprise-roadmap controls land.
 
 ## Reporting
 

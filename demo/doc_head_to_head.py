@@ -1,11 +1,11 @@
-"""Slice A.2 head-to-head over a real PDF corpus (acceptance #7).
+"""module head-to-head over a real PDF corpus (acceptance #7).
 
-Same RAG-wrong / Cogniflow-right + replay demo as Slice A, now over PDF *documents*
+Same RAG-wrong / Cogniflow-right + replay demo as module, now over PDF *documents*
 instead of OKF concepts. Two versions of a company report (HQ Boston -> Denver). Same
 LLM, same pipeline shape; only the memory layer differs.
 
 Prereqs: FalkorDB running, .env with COGNIFLOW_LLM_*, `pip install -e ".[all,documents]"`.
-Run:  PYTHONPATH=src python demo/doc_head_to_head.py
+Run: PYTHONPATH=src python demo/doc_head_to_head.py
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ Q = "Where is Acme Corp headquartered?"
 def run_plain_rag(cfg: GraphitiFalkorDBConfig) -> str:
     embed = NvidiaEmbedding(cfg.llm_api_key, cfg.llm_base_url)
     docs = []
-    for pdf in sorted(CORPUS.glob("*.pdf")):  # accumulated corpus: both report versions
+    for pdf in sorted(CORPUS.glob("*.pdf")): # accumulated corpus: both report versions
         text = "\n".join(p.extract_text() or "" for p in PdfReader(str(pdf)).pages)
         docs.append(Document(text=text))
     index = VectorStoreIndex.from_documents(docs, embed_model=embed)
@@ -74,25 +74,25 @@ async def run_cogniflow(cfg: GraphitiFalkorDBConfig) -> dict:
 def main() -> None:
     cfg = GraphitiFalkorDBConfig.from_env(group_id="doc_head_to_head")
     print("=" * 80)
-    print(f"QUESTION:  {Q}")
-    print("CORPUS:    PDF reports  (v1 2019 = Boston  ->  v2 2022 = Denver)")
+    print(f"QUESTION: {Q}")
+    print("CORPUS: PDF reports (v1 2019 = Boston -> v2 2022 = Denver)")
     print("=" * 80)
 
     rag = run_plain_rag(cfg)
     cf = asyncio.run(run_cogniflow(cfg))
 
     rag_stale = "Boston" in rag and "Denver" not in rag
-    print("\n--- PLAIN RAG  (vector over both PDF reports, top-3) ---")
-    print(f"   ANSWER:  {rag}")
-    print(f"   VERDICT: {'STALE (Boston)' if rag_stale else 'see answer'}")
-    print("\n--- COGNIFLOW-RAG  (temporal, as_of = now) ---")
-    print(f"   facts:   {cf['now'].facts}")
-    print(f"   ANSWER:  {cf['now'].answer}")
-    print(f"   VERDICT: {'CURRENT (Denver)' if 'Denver' in cf['now'].answer else 'see answer'}")
-    print("\n--- COGNIFLOW-RAG  (temporal, as_of = 2020 = replay) ---")
-    print(f"   facts:   {cf['past'].facts}")
-    print(f"   ANSWER:  {cf['past'].answer}")
-    print(f"   VERDICT: {'REPLAYED (Boston)' if 'Boston' in cf['past'].answer else 'see answer'}")
+    print("\n--- PLAIN RAG (vector over both PDF reports, top-3) ---")
+    print(f" ANSWER: {rag}")
+    print(f" VERDICT: {'STALE (Boston)' if rag_stale else 'see answer'}")
+    print("\n--- COGNIFLOW-RAG (temporal, as_of = now) ---")
+    print(f" facts: {cf['now'].facts}")
+    print(f" ANSWER: {cf['now'].answer}")
+    print(f" VERDICT: {'CURRENT (Denver)' if 'Denver' in cf['now'].answer else 'see answer'}")
+    print("\n--- COGNIFLOW-RAG (temporal, as_of = 2020 = replay) ---")
+    print(f" facts: {cf['past'].facts}")
+    print(f" ANSWER: {cf['past'].answer}")
+    print(f" VERDICT: {'REPLAYED (Boston)' if 'Boston' in cf['past'].answer else 'see answer'}")
     print("=" * 80)
     print(
         "NOTE: plain RAG may answer the *current* question correctly on a small corpus.\n"

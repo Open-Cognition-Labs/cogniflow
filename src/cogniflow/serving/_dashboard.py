@@ -1,5 +1,5 @@
 # ruff: noqa: E501
-"""The static audit dashboard markup (Slice B). Dependency-free HTML+vanilla JS served at /.
+"""The static audit dashboard markup . Dependency-free HTML+vanilla JS served at /.
 
 Kept in its own module (line-length checks off) because it is a markup blob, not Python.
 The JS renders only what the API returns - it never recomputes intervals client-side, so it
@@ -35,14 +35,14 @@ DASHBOARD_HTML = """<!doctype html>
 <main>
  <section><h2>Current beliefs (now)</h2><div id="current"></div></section>
  <section>
-   <h2>Event-time axis &mdash; what was TRUE as of</h2>
+   <h2>Event-time axis - what was TRUE as of</h2>
    <label>as_of <input type="date" id="evt" value="2026-04-01"></label>
    <div id="event"></div>
  </section>
  <section class="full">
-   <h2>System-time replay &mdash; what the system KNEW as of (the un-knowing)</h2>
+   <h2>System-time replay - what the system KNEW as of (the un-knowing)</h2>
    <div class="note">Scrub to a past moment S: a fact superseded <b>after</b> S reads believed-then and
-   un-superseded &mdash; its current invalid_at is <b>not</b> shown. The engine un-knows; this view renders
+   un-superseded - its current invalid_at is <b>not</b> shown. The engine un-knows; this view renders
    only what it returns.</div>
    <label>system_time <input type="date" id="sys" value="2026-04-01"></label>
    <div id="replay"></div>
@@ -53,11 +53,11 @@ DASHBOARD_HTML = """<!doctype html>
  </section>
 </main>
 <script>
-const fmt = d => d ? d.slice(0,10) : "&mdash;";
+const fmt = d => d ? d.slice(0,10) : " - ";
 function factHtml(b){
   const cls = b.invalid_at ? "fact superseded" : "fact";
   const src = b.valid_at_source || "none";
-  const prov = b.provenance.map(p=>p.display).join(", ") || "&mdash;";
+  const prov = b.provenance.map(p=>p.display).join(", ") || " - ";
   return `<div class="${cls}" onclick="trace('${b.belief_id}')">
     <div class="stmt">${b.statement}<span class="badge ${src}">${src}</span></div>
     <div class="meta">valid ${fmt(b.valid_at)} &rarr; ${b.invalid_at?("invalid "+fmt(b.invalid_at)):"present"}

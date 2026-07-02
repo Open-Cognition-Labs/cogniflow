@@ -1,4 +1,4 @@
-"""Slice B integration: the audit API over the real store, with DETERMINISTIC supersession
+"""module integration: the audit API over the real store, with DETERMINISTIC supersession
 (OKF `fact` triples - no LLM extraction flakiness). Proves the event-time axis at the API
 boundary and G1 provenance resolution (episode UUID -> concept name). Live FalkorDB; skipped
 without it.
@@ -70,8 +70,8 @@ def test_audit_api_event_axis_and_provenance_resolution() -> None:
         backend = GraphitiFalkorDBBackend(GraphitiFalkorDBConfig.from_env(group_id=group))
         await backend.setup()
         try:
-            await ingest_bundle(backend, BUNDLE / "v1")  # March: 7-day
-            await ingest_bundle(backend, BUNDLE / "v2")  # June: 28-day (supersedes)
+            await ingest_bundle(backend, BUNDLE / "v1") # March: 7-day
+            await ingest_bundle(backend, BUNDLE / "v2") # June: 28-day (supersedes)
             app = create_audit_app(backend)
             transport = ASGITransport(app=app)
             async with AsyncClient(transport=transport, base_url="http://audit.test") as ac:
@@ -129,7 +129,7 @@ def test_g1_provenance_uuid_resolves_to_document_name() -> None:
                 bid = current[0]["belief_id"]
                 trace = (await ac.get(f"/audit/provenance/{bid}")).json()
                 resolved = [a for a in trace["asserted_by"] if a["resolved"]]
-                assert resolved, trace  # a real UUID resolved from stored Episodic linkage
+                assert resolved, trace # a real UUID resolved from stored Episodic linkage
                 assert any("acme_report_v2" in a["name"] for a in resolved), trace
         finally:
             await backend.close()

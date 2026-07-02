@@ -44,7 +44,7 @@ class TemporalValidityPostprocessor(BaseNodePostprocessor):
     substrate uses, so there is one validity instance per wiring, not merely one
     class. There is NO silent default - a missing policy raises at construction time
     (fail-loud), because a component quietly using the default when a custom policy
-    was intended is exactly the Phase-3 fork.
+    was intended is exactly the milestone fork.
     """
 
     as_of: datetime | None = None

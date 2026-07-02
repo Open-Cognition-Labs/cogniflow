@@ -28,10 +28,10 @@ def _fact(i: int, statement: str) -> ServedFact:
 # ---- corpus shape guards --------------------------------------------------------------------
 def test_verify_corpus_is_grown_and_balanced() -> None:
     cases = verify_cases()
-    assert len(cases) >= 50  # the n=8 coin-flip era is over
+    assert len(cases) >= 50 # the n=8 coin-flip era is over
     pos = sum(1 for c in cases if c.expected_superseded)
     neg = len(cases) - pos
-    assert min(pos, neg) / len(cases) >= 0.4  # balanced within 40/60
+    assert min(pos, neg) / len(cases) >= 0.4 # balanced within 40/60
     # fictional-universe rule: dates in metadata, never in fact text
     for c in cases:
         for b in (c.target, *c.candidates):
@@ -48,10 +48,10 @@ def test_faithfulness_corpus_is_balanced() -> None:
     assert 0.3 <= sum(labels) / len(labels) <= 0.7
 
 
-# ---- the checker measurement (F2 T5) ---------------------------------------------------------
+# ---- the checker measurement ---------------------------------------------------------
 def test_lexical_checker_measured_on_labeled_corpus() -> None:
     checker = LexicalChecker()
-    tp = fp = fn = tn = 0  # positive class = UNSUPPORTED (hallucination detected)
+    tp = fp = fn = tn = 0 # positive class = UNSUPPORTED (hallucination detected)
     misses: list[str] = []
     for facts_text, claim, expected_supported in FAITHFULNESS_CASES:
         facts = [_fact(i, s) for i, s in enumerate(facts_text)]
@@ -77,7 +77,7 @@ def test_lexical_checker_measured_on_labeled_corpus() -> None:
         f"(tp={tp} fp={fp} fn={fn} tn={tn})"
     )
     for m in misses:
-        print("  ", m)
+        print(" ", m)
     # Bounds set FROM the measurement (not the other way around). A hallucination that passes
     # is the audit-dangerous error: recall is the headline and must stay at 1.0 on this set.
     assert det_recall >= 0.99, misses

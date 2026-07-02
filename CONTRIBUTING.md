@@ -31,7 +31,7 @@ the exact command that certifies it. The extension points:
 1. Fork, branch, and add your plugin **in its own module** (or your own package).
 2. Run `ruff check .` and `pytest` (unit). For backend/integration work, run the
    integration suite against a real backend (`docker run -p 6379:6379 falkordb/falkordb`)
-   - the CI integration lane does the same.
+ - the CI integration lane does the same.
 3. If you change a **core contract**, open an RFC first (see
    [docs/RFC_TEMPLATE.md](docs/RFC_TEMPLATE.md)) - breaking a contract breaks every plugin.
 4. Open a PR. Unit CI must be green; integration CI runs over real backends.

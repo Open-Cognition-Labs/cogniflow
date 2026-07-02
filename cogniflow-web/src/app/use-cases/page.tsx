@@ -10,7 +10,7 @@ const CASES = [
   {
     icon: ShieldCheck,
     title: "Compliance & audit",
-    body: "Reconstruct exactly what the system knew at any prior date. When a regulator or auditor asks 'what did you know, and when,' you answer with a replayable, cited record — not a guess.",
+    body: "Reconstruct exactly what the system knew at any prior date. When a regulator or auditor asks 'what did you know, and when,' you answer with a replayable, cited record - not a guess.",
   },
   {
     icon: Landmark,
@@ -20,7 +20,7 @@ const CASES = [
   {
     icon: LifeBuoy,
     title: "Support & operations knowledge",
-    body: "Policies, prices, and configs change. Answer 'what was the refund policy in March?' correctly — the version that was live then, not the current one that would mislead.",
+    body: "Policies, prices, and configs change. Answer 'what was the refund policy in March?' correctly - the version that was live then, not the current one that would mislead.",
   },
   {
     icon: History,
@@ -30,7 +30,7 @@ const CASES = [
   {
     icon: Lock,
     title: "Regulated, in-VPC deployments",
-    body: "Run the whole platform in your own environment with local models — your documents and your embeddings never leave your network. Self-hostable by design.",
+    body: "Run the whole platform in your own environment with local models - your documents and your embeddings never leave your network. Self-hostable by design.",
   },
   {
     icon: Building2,
@@ -48,7 +48,7 @@ export default function UseCasesPage() {
           Where &ldquo;what did we believe, and when&rdquo; is the whole job.
         </h1>
         <p className="text-subhead mb-10 max-w-[64ch]">
-          Cogniflow earns its place wherever an answer must be defensible after the fact &mdash;
+          Cogniflow earns its place wherever an answer must be defensible after the fact - 
           regulated, audited, or contested domains where the current answer isn&rsquo;t enough
           and you must prove what was known at a past moment.
         </p>

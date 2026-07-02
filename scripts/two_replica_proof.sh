@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# F5 T4: the two-replica proof. Run AFTER:
-#   docker compose -f docker-compose.yml -f docker-compose.replicas.yml up -d --build
+# milestone: the two-replica proof. Run AFTER:
+# docker compose -f docker-compose.yml -f docker-compose.replicas.yml up -d --build
 # Proves: a session created on replica A is served and OWNERSHIP-SCOPED on replica B (the
-# Phase-4 semantics survive multi-replica), rate limits are enforced jointly, and the seeded
+# milestone semantics survive multi-replica), rate limits are enforced jointly, and the seeded
 # un-knowing replay answers identically on both replicas.
 set -euo pipefail
 
@@ -11,8 +11,8 @@ B="${COGNIFLOW_API_B:-http://localhost:8001}"
 TOKEN="${COGNIFLOW_DEMO_TOKEN:-cogniflow-demo-token}"
 AUTH=(-H "Authorization: Bearer ${TOKEN}")
 
-ok()   { printf '  \033[32mPASS\033[0m %s\n' "$*"; }
-fail() { printf '  \033[31mFAIL\033[0m %s\n' "$*"; exit 1; }
+ok() { printf ' \033[32mPASS\033[0m %s\n' "$*"; }
+fail() { printf ' \033[31mFAIL\033[0m %s\n' "$*"; exit 1; }
 code() { curl -s -o /dev/null -w "%{http_code}" "$@"; }
 city() { grep -oE 'headquartered in [A-Za-z]+' | head -1 | awk '{print $NF}'; }
 

@@ -75,30 +75,30 @@ export default function DocsPage() {
           <Doc id="quickstart" title="Quickstart">
             <p>The fastest path from a clone to a temporally-correct answer.</p>
             <Code>{`# 1. Python engine + platform API
-python -m venv .venv && . .venv/Scripts/activate   # (Unix: source .venv/bin/activate)
+python -m venv .venv && . .venv/Scripts/activate # (Unix: source .venv/bin/activate)
 pip install -e ".[all,serve]"
 
 # 2. Start the graph store (Docker)
 docker run -d --name cogniflow-db -p 6379:6379 falkordb/falkordb:latest
 
 # 3. Configure the model + a REAL embedder (.env at repo root)
-#    Retrieval defaults to the key-free 'hash' embedder, which is MEANING-BLIND (lexical only).
-#    Pick a real embedder so first-run retrieval is semantic — choose by your constraint:
-#      key-free, needs torch:  COGNIFLOW_EMBEDDER=bge-m3-local   (pip install -e ".[embeddings]")
-#      dependency-light, key:  COGNIFLOW_EMBEDDER=bge-m3         (needs COGNIFLOW_EMBEDDER_API_KEY)
-COGNIFLOW_LLM_API_KEY=...        # generation model provider key
-COGNIFLOW_LLM_BASE_URL=...       # provider base URL
-COGNIFLOW_LLM_MODEL=...          # model id
-COGNIFLOW_EMBEDDER=bge-m3        # semantic retrieval (or 'bge-m3-local' for the key-free path)
-COGNIFLOW_EMBEDDER_API_KEY=...   # required for bge-m3 (hosted); omit for bge-m3-local
+# Retrieval defaults to the key-free 'hash' embedder, which is MEANING-BLIND (lexical only).
+# Pick a real embedder so first-run retrieval is semantic - choose by your constraint:
+# key-free, needs torch: COGNIFLOW_EMBEDDER=bge-m3-local (pip install -e ".[embeddings]")
+# dependency-light, key: COGNIFLOW_EMBEDDER=bge-m3 (needs COGNIFLOW_EMBEDDER_API_KEY)
+COGNIFLOW_LLM_API_KEY=... # generation model provider key
+COGNIFLOW_LLM_BASE_URL=... # provider base URL
+COGNIFLOW_LLM_MODEL=... # model id
+COGNIFLOW_EMBEDDER=bge-m3 # semantic retrieval (or 'bge-m3-local' for the key-free path)
+COGNIFLOW_EMBEDDER_API_KEY=... # required for bge-m3 (hosted); omit for bge-m3-local
 
 # 4. Run the platform API + the web app
-python cogniflow-api/main.py                 # http://localhost:8000
-pnpm -C cogniflow-web dev                     # http://localhost:3000`}</Code>
+python cogniflow-api/main.py # http://localhost:8000
+pnpm -C cogniflow-web dev # http://localhost:3000`}</Code>
             <p>Open the playground, upload a PDF, and ask a question with the <b>as-of</b> date set to the past.</p>
             <p className="mt-3 rounded-lg border border-brand/20 bg-brand/[0.04] p-3 text-sm">
               A real embedder fixes <b>retrieval</b> (which facts come back). It does not change{" "}
-              <b>extraction</b> (how well facts are pulled from prose) &mdash; that is bounded by the
+              <b>extraction</b> (how well facts are pulled from prose) - that is bounded by the
               generation model and stays honestly labeled per fact via <code>valid_at_source</code>.
               The hash embedder remains the key-free boot default, but it is never silent: the API
               health check and every response warn when retrieval is non-semantic.
@@ -107,7 +107,7 @@ pnpm -C cogniflow-web dev                     # http://localhost:3000`}</Code>
 
           <Doc id="deploy" title="Deploy (self-host)">
             <p>
-              Cogniflow runs entirely in your environment &mdash; your infrastructure, your
+              Cogniflow runs entirely in your environment - your infrastructure, your
               models, your data never leaves. Three components: the <b>graph store</b>, the
               <b> platform API</b>, and the <b>web app</b>.
             </p>
@@ -119,14 +119,14 @@ pnpm -C cogniflow-web dev                     # http://localhost:3000`}</Code>
   python -m uvicorn cogniflow-api.main:app --host 0.0.0.0 --port 8000 --workers 4`}</Code>
             <p><b>Web app.</b> Build once and serve the static output; point it at your API:</p>
             <Code>{`NEXT_PUBLIC_API_URL=https://api.yourco.com pnpm -C cogniflow-web build
-pnpm -C cogniflow-web start   # or deploy the build output to your host`}</Code>
+pnpm -C cogniflow-web start # or deploy the build output to your host`}</Code>
             <p>
               For an air-gapped / in-VPC deployment, set the model, embedder, and reranker
               plugins to <b>local endpoints</b> (Ollama, vLLM, or a self-hosted embedder) so no
               request leaves your network.
             </p>
             <p className="mt-3 rounded-lg border border-warn/30 bg-warn/[0.06] p-3 text-sm">
-              <b>Security posture.</b> The API has <b>baseline security</b> &mdash; bearer-token
+              <b>Security posture.</b> The API has <b>baseline security</b> - bearer-token
               auth, token-scoped session access, rate limits, and upload caps (set{" "}
               <code>COGNIFLOW_API_TOKENS</code>; see <code>SECURITY.md</code>). It is safe in a{" "}
               <b>trusted environment</b>, <b>not</b> enterprise-ready: RBAC, access-audit logging,
@@ -148,7 +148,7 @@ pnpm -C cogniflow-web start   # or deploy the build output to your host`}</Code>
             </p>
             <p>
               <b>Audit.</b> Inspect current beliefs, a fact&rsquo;s full timeline, and
-              system-time replay &mdash; what the system knew at any past moment, correctly
+              system-time replay - what the system knew at any past moment, correctly
               un-knowing anything learned later.
             </p>
           </Doc>
@@ -156,32 +156,32 @@ pnpm -C cogniflow-web start   # or deploy the build output to your host`}</Code>
           <Doc id="architecture" title="Architecture">
             <p>One pipeline, every stage pluggable:</p>
             <ul className="list-disc space-y-1 pl-5">
-              <li><b>Ingest</b> — parse + structure-preserving chunk + embed.</li>
-              <li><b>Bi-temporal knowledge graph</b> — facts stored <b>bi-temporally</b>: event time (when true) and system time (when learned).</li>
-              <li><b>As-of retrieval</b> — validity-filter context to a point in time before ranking.</li>
-              <li><b>Rerank</b> — optional cross-encoder, off by default.</li>
-              <li><b>Grounded generation</b> — answer only from retrieved facts.</li>
-              <li><b>Cited answer</b> — every claim traces to a fact, every fact to a document.</li>
+              <li><b>Ingest</b> - parse + structure-preserving chunk + embed.</li>
+              <li><b>Bi-temporal knowledge graph</b> - facts stored <b>bi-temporally</b>: event time (when true) and system time (when learned).</li>
+              <li><b>As-of retrieval</b> - validity-filter context to a point in time before ranking.</li>
+              <li><b>Rerank</b> - optional cross-encoder, off by default.</li>
+              <li><b>Grounded generation</b> - answer only from retrieved facts.</li>
+              <li><b>Cited answer</b> - every claim traces to a fact, every fact to a document.</li>
             </ul>
             <p>
               The core contracts are dependency-free; storage, models, and retrieval are adapters
               behind stable interfaces. The bi-temporal model is what makes &ldquo;what did we
-              know at time S&rdquo; answerable &mdash; and answerable <b>correctly</b> (facts
+              know at time S&rdquo; answerable - and answerable <b>correctly</b> (facts
               learned after S are un-known in the replay).
             </p>
           </Doc>
 
           <Doc id="plugins" title="Plugins">
             <p>
-              Every provider is a plugin, selected by config &mdash; nothing is hard-wired. Swap
+              Every provider is a plugin, selected by config - nothing is hard-wired. Swap
               the embedder, reranker, generation model, or graph backend without touching code.
               Selection is <b>fail-loud</b>: a missing key or unknown name raises at startup
               rather than silently falling back.
             </p>
-            <Code>{`COGNIFLOW_EMBEDDER=bge-m3          # or hash (key-free), or a custom endpoint
-COGNIFLOW_GENERATOR=...            # any OpenAI-compatible provider
-COGNIFLOW_RERANKER_API_KEY=...     # optional reranker (off by default)
-COGNIFLOW_BACKEND_DRIVER=falkordb  # or neo4j`}</Code>
+            <Code>{`COGNIFLOW_EMBEDDER=bge-m3 # or hash (key-free), or a custom endpoint
+COGNIFLOW_GENERATOR=... # any OpenAI-compatible provider
+COGNIFLOW_RERANKER_API_KEY=... # optional reranker (off by default)
+COGNIFLOW_BACKEND_DRIVER=falkordb # or neo4j`}</Code>
             <p>Manage them live for your session on the <a href="/plugins" className="text-brand hover:underline">Plugins</a> page.</p>
           </Doc>
 

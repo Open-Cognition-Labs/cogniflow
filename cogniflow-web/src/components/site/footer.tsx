@@ -10,7 +10,7 @@ export function Footer() {
           <Logo />
           <p className="max-w-sm text-sm text-muted-foreground">
             Bi-temporal, self-falsifying belief substrate for agentic RAG. Apache-2.0. Every
-            number on this site comes from a live run &mdash; none fabricated.
+            number on this site comes from a live run - none fabricated.
           </p>
         </div>
         <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">

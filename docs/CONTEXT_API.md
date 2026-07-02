@@ -1,4 +1,4 @@
-# The context-serving API (Slice A.3)
+# The context-serving API 
 
 Cogniflow as a standalone **context engine**: query in, temporally-correct *context* out,
 callable by any model. **The output is context, not an answer** - Cogniflow serves
@@ -6,7 +6,7 @@ validated, provenance-carrying facts; the consuming model generates the answer.
 
 ## Context API vs Audit API (two surfaces, one engine)
 
-| | **Context API (this, A.3)** | **Audit API (Slice B)** |
+| | **Context API (this, A.3)** | **Audit API ** |
 |---|---|---|
 | Consumer | a model / agent | a human / compliance reader |
 | Access | query-driven ("context for this") | inspection-driven ("show the timeline") |
@@ -57,15 +57,15 @@ never leaves), each behind an optional extra so the core carries no web/agent fr
 **MCP** (`pip install 'cogniflow-rag[mcp]'`) - the primary "any model calls it" path:
 ```python
 from cogniflow.serving import build_mcp_server
-server = build_mcp_server(substrate)   # exposes a read-only get_context tool
-server.run()                           # stdio; any MCP client (Claude Desktop, Cursor, ...)
+server = build_mcp_server(substrate) # exposes a read-only get_context tool
+server.run() # stdio; any MCP client (Claude Desktop, Cursor, ...)
 ```
 
 **HTTP/REST** (`pip install 'cogniflow-rag[serve]'`) - for non-MCP consumers:
 ```python
 from cogniflow.serving import create_app
-app = create_app(substrate)            # POST /context -> the G1 contract as JSON
-# cogniflow.serving.http.run(substrate)  # uvicorn on 127.0.0.1 (loopback by default)
+app = create_app(substrate) # POST /context -> the G1 contract as JSON
+# cogniflow.serving.http.run(substrate) # uvicorn on 127.0.0.1 (loopback by default)
 ```
 
 Write-back is **not** on this surface - the read API never writes (the `record_observation`
@@ -85,5 +85,5 @@ exist to prevent.
 
 ## What this is not
 - Not a generator - it serves context, the model answers.
-- Not the audit/replay dashboard - that is Slice B (human consumer, the ledger as output).
+- Not the audit/replay dashboard - that is module (human consumer, the ledger as output).
 - Not a write surface - read-only by construction.

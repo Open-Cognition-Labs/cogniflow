@@ -1,4 +1,4 @@
-# Document ingestion - parser decision (Slice A.2, G1)
+# Document ingestion - parser decision 
 
 Cogniflow's second front door ingests arbitrary documents (text, markdown, PDF) into the
 temporal store via the same Episode/`write` path OKF uses. This records the parser

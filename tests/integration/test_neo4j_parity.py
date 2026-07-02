@@ -105,7 +105,7 @@ def test_neo4j_parity_heartbeat_stamps_replay_provenance() -> None:
             live = next(
                 b for b in await backend.system_time_replay(before) if "Boston" in b.statement
             )
-            assert live.invalid_at is None  # post-S invalidation not leaked backward
+            assert live.invalid_at is None # post-S invalidation not leaked backward
 
             # provenance with stored superseded_by (SUP)
             trace = await backend.provenance_trace(boston.id)

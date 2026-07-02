@@ -1,4 +1,4 @@
-"""Post-hoc faithfulness check (F2) - the answer is CHECKED against the served facts.
+"""Post-hoc faithfulness check - the answer is CHECKED against the served facts.
 
 Grounding by prompt-instruction alone is a request, not a guarantee: the temporal guarantee has
 a model-dependent half. This layer moves the guarantee from "we asked the model nicely" to "we
@@ -65,9 +65,9 @@ class FaithfulnessError(RuntimeError):
 @dataclass(frozen=True)
 class ClaimVerdict:
     claim: str
-    status: str  # "supported" | "unsupported" | "uncheckable"
-    best_fact: str | None = None  # belief_id of the best-supporting fact
-    score: float | None = None  # checker-specific support score (lexical: token coverage)
+    status: str # "supported" | "unsupported" | "uncheckable"
+    best_fact: str | None = None # belief_id of the best-supporting fact
+    score: float | None = None # checker-specific support score (lexical: token coverage)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -81,10 +81,10 @@ class ClaimVerdict:
 @dataclass(frozen=True)
 class FaithfulnessReport:
     """The response-attached verdict. ``status`` is the overall flag:
-    - "grounded"            every checkable claim is supported
-    - "unsupported_claims"  at least one claim is not supported by the served facts
-    - "no_checkable_claims" nothing checkable (e.g. a refusal) - honest, not a pass
-    - "unchecked"           the checker is off (visibly off, never silently absent)
+ - "grounded" every checkable claim is supported
+ - "unsupported_claims" at least one claim is not supported by the served facts
+ - "no_checkable_claims" nothing checkable (e.g. a refusal) - honest, not a pass
+ - "unchecked" the checker is off (visibly off, never silently absent)
     """
 
     checker: str
@@ -242,7 +242,7 @@ or
         claims_text = "\n".join(f"{i + 1}. {c}" for i, c in enumerate(claims))
         raw = self.generator(self._PROMPT.format(facts=facts_text, claims=claims_text))
         if hasattr(raw, "__await__"):
-            raw = await raw  # type: ignore[misc]
+            raw = await raw # type: ignore[misc]
         verdict_by_index: dict[int, str] = {}
         for m in re.finditer(r"(\d+)\s*[:.\-]\s*(SUPPORTED|UNSUPPORTED)", str(raw), re.IGNORECASE):
             verdict_by_index[int(m.group(1))] = m.group(2).lower()

@@ -1,6 +1,6 @@
-"""verify_fact: the LLM-driven, read-only FalsificationPolicy (Phase 5).
+"""verify_fact: the LLM-driven, read-only FalsificationPolicy .
 
-This is the policy explicitly deferred in Phase 3, now filled in and registered as
+This is the policy explicitly deferred in milestone, now filled in and registered as
 ``falsification: llm``. It is **read-only and advisory**: it returns a verdict and
 NEVER writes to the graph. The authoritative falsification stays the free write-time
 supersession from ingestion; if an agent acts on a verify verdict it does so through
@@ -82,7 +82,7 @@ class LLMFalsificationPolicy:
         pool = [c for c in candidates if c.id != target.id][: self._max_candidates]
         try:
             raw = self._complete(_build_prompt(target, pool))
-        except Exception as exc:  # noqa: BLE001 - any failure -> bounded indeterminate, never raise
+        except Exception as exc: # noqa: BLE001 - any failure -> bounded indeterminate, never raise
             return self._indeterminate(target, f"llm error: {type(exc).__name__}")
 
         parsed = _extract_json(raw)

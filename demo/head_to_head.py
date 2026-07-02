@@ -1,16 +1,16 @@
 """Live head-to-head: plain RAG vs Cogniflow on the SAME corpus, SAME question, SAME LLM.
 
 Only the retrieval differs:
-  - Plain RAG: a real vector index (NVIDIA embeddings) + top-k similarity. It has no
+ - Plain RAG: a real vector index (NVIDIA embeddings) + top-k similarity. It has no
     recency/supersession model, so it returns the abundant, similar-but-stale answer.
-  - Cogniflow: temporal substrate. It knows the old fact was superseded and returns the
+ - Cogniflow: temporal substrate. It knows the old fact was superseded and returns the
     current one - and, asked as-of an earlier date, correctly returns the old one.
 
 Edit demo/corpus.py and re-run; the contrast reproduces on your data.
 
 Prereqs: FalkorDB running (docker run -p 6379:6379 falkordb/falkordb), a .env with
 COGNIFLOW_LLM_*, and `pip install -e ".[all]"`.
-Run:  PYTHONPATH=src python demo/head_to_head.py
+Run: PYTHONPATH=src python demo/head_to_head.py
 """
 
 from __future__ import annotations
@@ -103,30 +103,30 @@ def _verdict(answer: str, current: str, stale: str) -> str:
 def main() -> None:
     cfg = GraphitiFalkorDBConfig.from_env(group_id="head_to_head_demo")
     print("=" * 78)
-    print(f"QUESTION:  {QUESTION}")
-    print(f"CORPUS:    {len(CORPUS)} documents (edit demo/corpus.py to swap)")
+    print(f"QUESTION: {QUESTION}")
+    print(f"CORPUS: {len(CORPUS)} documents (edit demo/corpus.py to swap)")
     print("=" * 78)
 
     rag_answer, rag_retrieved = run_plain_rag(cfg)
     cf = asyncio.run(run_cogniflow(cfg))
 
-    print(f"\n--- PLAIN RAG  (vector similarity, top-{TOP_K}) ---")
+    print(f"\n--- PLAIN RAG (vector similarity, top-{TOP_K}) ---")
     for r in rag_retrieved:
-        print(f"   retrieved: {r}")
-    print(f"   ANSWER:    {rag_answer}")
-    print(f"   VERDICT:   {_verdict(rag_answer, 'Denver', 'Boston')}")
+        print(f" retrieved: {r}")
+    print(f" ANSWER: {rag_answer}")
+    print(f" VERDICT: {_verdict(rag_answer, 'Denver', 'Boston')}")
 
     now_ans, now_ctx = cf["now"]
     past_ans, past_ctx = cf["past"]
-    print("\n--- COGNIFLOW  (temporal, as_of = now) ---")
-    print(f"   retrieved: {now_ctx}")
-    print(f"   ANSWER:    {now_ans}")
-    print(f"   VERDICT:   {_verdict(now_ans, 'Denver', 'Boston')}")
+    print("\n--- COGNIFLOW (temporal, as_of = now) ---")
+    print(f" retrieved: {now_ctx}")
+    print(f" ANSWER: {now_ans}")
+    print(f" VERDICT: {_verdict(now_ans, 'Denver', 'Boston')}")
 
-    print("\n--- COGNIFLOW  (temporal, as_of = 2016, proving it is not just always-new) ---")
-    print(f"   retrieved: {past_ctx}")
-    print(f"   ANSWER:    {past_ans}")
-    print(f"   VERDICT:   {_verdict(past_ans, 'Boston', 'Denver')}")
+    print("\n--- COGNIFLOW (temporal, as_of = 2016, proving it is not just always-new) ---")
+    print(f" retrieved: {past_ctx}")
+    print(f" ANSWER: {past_ans}")
+    print(f" VERDICT: {_verdict(past_ans, 'Boston', 'Denver')}")
     print("=" * 78)
 
 

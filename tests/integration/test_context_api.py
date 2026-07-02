@@ -1,4 +1,4 @@
-"""Slice A.3 integration: the context API over the real store.
+"""module integration: the context API over the real store.
 
 T3 (load-bearing): a fact ingested with a DERIVED valid_at is served by the context API
 still labeled derived, provenance intact - the honesty label survives ingestion->output.
@@ -76,10 +76,10 @@ def test_honesty_label_survives_to_the_context_api() -> None:
             denver = [f for f in res.facts if "Denver" in f.statement]
             assert denver, res.facts
             fact = denver[0]
-            assert fact.valid_at_source == "derived"  # T3: derived stays derived end to end
-            assert fact.valid_at_source_raw == "document:mtime"  # raw label round-tripped
+            assert fact.valid_at_source == "derived" # T3: derived stays derived end to end
+            assert fact.valid_at_source_raw == "document:mtime" # raw label round-tripped
             # provenance intact: the episode(s) that asserted this fact (UUIDs; resolving
-            # them to human-readable document ids is the Slice B audit surface)
+            # them to human-readable document ids is the module audit surface)
             assert fact.provenance and all(p for p in fact.provenance)
         finally:
             await backend.close()

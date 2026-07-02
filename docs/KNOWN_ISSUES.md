@@ -18,13 +18,13 @@ correctness therefore does not depend on the DB-side filter.
 
 **Follow-up (deferred):** push the temporal predicate into the FalkorDB Cypher query (or
 switch the date filter on at the driver level) so the database does the work and the
-over-fetch factor can shrink. Tracked for the backend-hardening phase.
+over-fetch factor can shrink. Tracked for the backend-hardening stage.
 
 ## P2 - ReAct re-query reliability is LLM-driven (tracked constraint)
 
 The configured LLM (MiniMax-M3 via the NVIDIA OpenAI-compatible endpoint) emits **no
 native tool calls**: `llm.get_tool_calls_from_response(...)` returns `[]`. Confirmed in
-Phase 1b. The agent is therefore a `ReActAgent`, which drives any chat LLM via a text
+milestone. The agent is therefore a `ReActAgent`, which drives any chat LLM via a text
 Thought/Action/Observation loop and parses the tool call from text.
 
 **Consequence:** the autonomous re-query / critique half of the thesis rides on the
@@ -33,7 +33,7 @@ best-effort and only as reliable as the model. The single-call heartbeat is robu
 multi-step re-query loop is uncharacterized.
 
 **Trigger to revisit:** configure a function-calling model and switch to `FunctionAgent`
-**before** the re-query/critique loop becomes load-bearing (Phase 5 `verify_fact`). At
+**before** the re-query/critique loop becomes load-bearing . At
 that point, add a characterization run measuring re-query reliability.
 
 **Breadcrumb for the model swap:** `OpenAILike` on the async path returns empty
@@ -51,7 +51,7 @@ by `test_drain_waits_for_successful_retry`.
 
 **Follow-up (deferred):** back the queue with a durable log (e.g. Redis stream / a table)
 so "queued" survives restarts and dead-letters are recoverable. Tracked for the
-backend-hardening phase.
+backend-hardening stage.
 
 ## G4c - provenance back-link is reconstructed, not stored (ambiguity flag)
 
@@ -62,7 +62,7 @@ is **ambiguous** when two different facts share that exact `valid_at` in the sam
 the join can name the wrong superseding episode, which is a confident lie about causation
 (worse than no answer).
 
-**Pre-logged Phase-6 decision:** persist an explicit `superseded_by` (belief + episode)
+**Pre-logged milestone decision:** persist an explicit `superseded_by` (belief + episode)
 at write time, inside the contradiction-resolution step, so the trace reads a stored
 back-link instead of reconstructing one. Until then, treat `superseded_by_*` from
 `provenance_trace` as best-effort, and prefer it only when the temporal join is

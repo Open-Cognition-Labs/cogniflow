@@ -153,7 +153,7 @@ class GraphitiFalkorDBBackend:
     # Over-fetch stopgap (G3): the FalkorDriver does not apply the date SearchFilters, so a
     # valid-at-T fact ranked outside top_k would be silently dropped. read() fetches a wider
     # candidate set (config.overfetch_factor / config.min_overfetch), validity-filters
-    # in-process, then truncates to top_k - and warns if the window saturates (Phase 3 T3).
+    # in-process, then truncates to top_k - and warns if the window saturates .
 
     def __init__(
         self,
@@ -204,7 +204,7 @@ class GraphitiFalkorDBBackend:
             embedder=self._embedder,
             cross_encoder=OpenAIRerankerClient(config=llm_config),
         )
-        # Retrieval health flags surfaced to the serving layer (Phase 3 T3): whether the last
+        # Retrieval health flags surfaced to the serving layer : whether the last
         # read saturated the over-fetch window (a valid-at-T fact may rank below it and be missed).
         self._last_read_saturated = False
         self._warned_saturated = False
@@ -240,7 +240,7 @@ class GraphitiFalkorDBBackend:
         dimension change is caught at startup rather than silently corrupting the space."""
         check_embedding_dimension(await self._detect_store_dim(), self._embedder.embedding_dim)
         await self._graphiti.build_indices_and_constraints()
-        warn_if_non_semantic(self._embedder)  # T1: never let meaning-blind hash run silently
+        warn_if_non_semantic(self._embedder) # T1: never let meaning-blind hash run silently
 
     async def _detect_store_dim(self) -> int | None:
         """Best-effort: the dimension of vectors already in the store, or None if the store
@@ -326,7 +326,7 @@ class GraphitiFalkorDBBackend:
             group_id=gid,
             created_at=now,
             valid_at=episode.reference_time,
-            episodes=[episode.id],  # provenance always (G4): authoritative facts carry their source
+            episodes=[episode.id], # provenance always (G4): authoritative facts carry their source
         )
         result = await self._graphiti.add_triplet(source, edge, target)
         created = [e.uuid for e in result.edges if e.expired_at is None]
@@ -357,7 +357,7 @@ class GraphitiFalkorDBBackend:
         # Pipeline order (T4): validity-filter (deterministic) BEFORE rank (opt-in,
         # possibly expensive), then truncate. Reranking never runs on invalid facts.
         results = tuple(rank_valid(beliefs, query, self._validity, self._retrieval))
-        # G3 (Phase 3 T3): correctness rides on the over-fetch window because the driver ignores
+        # G3 : correctness rides on the over-fetch window because the driver ignores
         # the date filter. If it saturated, a valid-at-T fact could rank below it and be missed -
         # make that risk non-silent (a warning + a served note) instead of a silent false negative.
         self._last_read_saturated = len(edges) >= overfetch
@@ -447,7 +447,7 @@ class GraphitiFalkorDBBackend:
             return datetime.fromisoformat(value)
         if isinstance(value, datetime):
             return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
-        to_native = getattr(value, "to_native", None)  # neo4j.time.DateTime
+        to_native = getattr(value, "to_native", None) # neo4j.time.DateTime
         if to_native is not None:
             native = to_native()
             return native if native.tzinfo else native.replace(tzinfo=timezone.utc)

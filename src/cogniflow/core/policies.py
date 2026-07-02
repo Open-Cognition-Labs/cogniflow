@@ -1,13 +1,13 @@
-"""The four policy interfaces — the pluggable decision points of the substrate.
+"""The four policy interfaces - the pluggable decision points of the substrate.
 
 Each maps to one seam from the design analysis:
 
-  RetrievalPolicy     -> read seam        (resolve as-of, rank candidates)
-  ValidityPolicy      -> invalidate seam  (is a belief valid at time t?)
-  FalsificationPolicy -> falsify seam     (is a belief superseded, and by what?)
-  WritebackPolicy     -> write-back seam  (should an outcome become a new belief?)
+  RetrievalPolicy -> read seam (resolve as-of, rank candidates)
+  ValidityPolicy -> invalidate seam (is a belief valid at time t?)
+  FalsificationPolicy -> falsify seam (is a belief superseded, and by what?)
+  WritebackPolicy -> write-back seam (should an outcome become a new belief?)
 
-Phase 0 ships the *interfaces* plus trivial default implementations so a backend can
+milestone ships the *interfaces* plus trivial default implementations so a backend can
 be wired end to end. Real policies (LLM-driven contradiction, temporal decay ranking,
 selective write-back) are deferred. Standard library only.
 """
@@ -98,10 +98,10 @@ class DefaultValidityPolicy:
 
     Event-time and system-time are never ANDed:
 
-    - ``as_of`` set  -> point-in-time *replay*: return ``is_valid_at(as_of)`` only.
+ - ``as_of`` set -> point-in-time *replay*: return ``is_valid_at(as_of)`` only.
       ``expired_at`` (system-time liveness) is irrelevant; a fact that was true at
       T must be visible at T even if it has since been superseded.
-    - ``as_of`` is ``None`` -> "current" query: valid iff the belief is still live
+ - ``as_of`` is ``None`` -> "current" query: valid iff the belief is still live
       (``expired_at is None``), unless ``include_expired`` is set.
     """
 
@@ -211,15 +211,15 @@ class IntervalOverlapFalsificationPolicy:
                 indeterminate=True,
                 rationale="indeterminate: target has no valid_at to adjudicate",
             )
-        target_end = target.invalid_at  # event-time end (None = open)
+        target_end = target.invalid_at # event-time end (None = open)
         best: Belief | None = None
         for candidate in candidates:
             if candidate.id == target.id or candidate.valid_at is None:
                 continue
             if candidate.valid_at <= target_start:
-                continue  # not later
+                continue # not later
             if target_end is not None and candidate.valid_at >= target_end:
-                continue  # target already ended before the candidate begins -> no overlap
+                continue # target already ended before the candidate begins -> no overlap
             if best is None or candidate.valid_at < best.valid_at:
                 best = candidate
         if best is None:

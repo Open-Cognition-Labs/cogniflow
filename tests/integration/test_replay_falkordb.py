@@ -1,4 +1,4 @@
-"""Phase 4 integration: the audit/replay layer against live FalkorDB.
+"""milestone integration: the audit/replay layer against live FalkorDB.
 
 Proves on real data: the un-knowing invariant (a fact's post-S invalidation is not
 leaked backward), provenance trace with the reconstructed back-link, and that replay
@@ -113,7 +113,7 @@ def test_replay_unknowing_and_provenance_and_bypasses_search() -> None:
             async def _boom(*a, **k):
                 raise AssertionError("replay must not call graphiti.search")
 
-            backend._graphiti.search = _boom  # type: ignore[assignment]
+            backend._graphiti.search = _boom # type: ignore[assignment]
             assert await backend.bitemporal_query(after, _w(2023)) is not None
             assert await backend.system_time_replay(before) is not None
         finally:

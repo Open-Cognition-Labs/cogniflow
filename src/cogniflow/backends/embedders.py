@@ -100,7 +100,7 @@ class NvidiaEmbedder(EmbedderClient):
                 break
             except urllib.error.HTTPError as e:
                 if e.code in _RETRY_STATUS and attempt < 4:
-                    time.sleep(2**attempt)  # transient 429/5xx from the hosted API
+                    time.sleep(2**attempt) # transient 429/5xx from the hosted API
                     continue
                 raise
         return [row["embedding"] for row in payload["data"]]
@@ -124,7 +124,7 @@ class LocalBgeEmbedder(EmbedderClient):
     dimension is identical either way. Verified by ``test_embedder_local`` when the extra is
     installed; a labeled wired-but-unverified seam otherwise (like the local reranker)."""
 
-    def __init__(  # pragma: no cover
+    def __init__( # pragma: no cover
         self, model: str = "BAAI/bge-m3", embedding_dim: int = 1024
     ) -> None:
         try:
@@ -141,21 +141,21 @@ class LocalBgeEmbedder(EmbedderClient):
         self._model = BGEM3FlagModel(model, use_fp16=True)
 
     @property
-    def embedding_dim(self) -> int:  # pragma: no cover
+    def embedding_dim(self) -> int: # pragma: no cover
         return self.config.embedding_dim
 
-    def _encode(self, texts: list[str]) -> list[list[float]]:  # pragma: no cover
+    def _encode(self, texts: list[str]) -> list[list[float]]: # pragma: no cover
         dense = self._model.encode(texts, return_dense=True)["dense_vecs"]
         return [list(map(float, v)) for v in dense]
 
-    async def create(  # pragma: no cover
+    async def create( # pragma: no cover
         self, input_data: str | list[str]
     ) -> list[float]:
         text = input_data if isinstance(input_data, str) else " ".join(map(str, input_data))
         vectors = await asyncio.to_thread(self._encode, [text])
         return vectors[0]
 
-    async def create_batch(  # pragma: no cover
+    async def create_batch( # pragma: no cover
         self, input_data_list: list[str]
     ) -> list[list[float]]:
         if not input_data_list:
@@ -164,7 +164,7 @@ class LocalBgeEmbedder(EmbedderClient):
 
 
 # The retrieval-quality warning surfaced when the meaning-blind hash embedder is in use. Kept
-# here (the embedder concern); the serving layer surfaces its own response note (Phase 3 T1).
+# here (the embedder concern); the serving layer surfaces its own response note .
 NON_SEMANTIC_RETRIEVAL_WARNING = (
     "Retrieval is NON-SEMANTIC: the hash embedder is meaning-blind (it ranks by token overlap, "
     "not meaning). Configure a real embedder for semantic recall - 'bge-m3-local' (key-free, "
@@ -180,7 +180,7 @@ def is_semantic(embedder: EmbedderClient) -> bool:
 
 def warn_if_non_semantic(embedder: EmbedderClient) -> None:
     """Emit a loud warning when running on the meaning-blind hash embedder outside a test, so a
-    stranger never unknowingly evaluates retrieval on lexical results (Phase 3 T1). Silent inside
+    stranger never unknowingly evaluates retrieval on lexical results . Silent inside
     pytest so correctness tests (which run on hash by design) stay clean and deterministic."""
     if is_semantic(embedder) or os.environ.get("PYTEST_CURRENT_TEST"):
         return

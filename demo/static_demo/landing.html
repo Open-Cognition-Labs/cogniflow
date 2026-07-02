@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cogniflow &mdash; the auditable, self-hostable belief ledger for agents</title>
+<title>Cogniflow - the auditable, self-hostable belief ledger for agents</title>
 <style>
  :root{--bg:#0f1115;--card:#161922;--line:#262a35;--fg:#e8eaed;--mut:#9aa4b2;--win:#56d39a;--warn:#e2c04b;--miss:#5b6472}
  *{box-sizing:border-box}
@@ -45,7 +45,7 @@
 <section>
  <p class="eyebrow">Self-hostable &middot; open source (Apache-2.0) &middot; built on Graphiti &times; LlamaIndex</p>
  <h1>The auditable, self-hostable belief ledger for agents.</h1>
- <p class="sub">Plain RAG can tell you what's true <em>now</em>. Cogniflow tells you what your agent believed at any <em>past</em> moment &mdash; and proves it. Temporally-correct context and cited answers, running in your own VPC, where your data never leaves.</p>
+ <p class="sub">Plain RAG can tell you what's true <em>now</em>. Cogniflow tells you what your agent believed at any <em>past</em> moment - and proves it. Temporally-correct context and cited answers, running in your own VPC, where your data never leaves.</p>
  <div class="cta">
   <a class="btn p" href="index.html">See the live head-to-head &rarr;</a>
   <a class="btn s" href="https://github.com/Nagendhra-web/cogniflow">Read the code</a>
@@ -56,11 +56,11 @@
 <section>
  <p class="eyebrow">The one thing plain RAG can't do</p>
  <h2>Ask "as of when?"</h2>
- <p class="lede">Modern RAG (and hosted memory) has no time axis. It answers from whatever it retrieves today. Cogniflow filters context to the moment you ask about, so the answer is temporally correct &mdash; and cites the fact it stood on.</p>
+ <p class="lede">Modern RAG (and hosted memory) has no time axis. It answers from whatever it retrieves today. Cogniflow filters context to the moment you ask about, so the answer is temporally correct - and cites the fact it stood on.</p>
  <table>
   <thead><tr><th>Same question, add "as of 2015"</th><th>Answer</th></tr></thead>
   <tbody>
-   <tr><td class="miss">Plain RAG</td><td class="miss">Can't isolate the past &mdash; no time axis. It sees both the old and new fact and hedges or picks wrong.</td></tr>
+   <tr><td class="miss">Plain RAG</td><td class="miss">Can't isolate the past - no time axis. It sees both the old and new fact and hedges or picks wrong.</td></tr>
    <tr><td class="win">Cogniflow (as of 2015)</td><td id="asof-a" class="win"></td></tr>
   </tbody>
  </table>
@@ -70,22 +70,22 @@
 <section>
  <p class="eyebrow">Positioned by contrast</p>
  <h2>We are the thing the recall-optimized clouds vacated</h2>
- <p class="lede">Not a worse hosted-memory service. The answer to a question their governed cloud structurally can't answer &mdash; for the regulated buyer who can't send data out. We tie on retrieval (we inherit Graphiti's); we win where they're blank.</p>
+ <p class="lede">Not a worse hosted-memory service. The answer to a question their governed cloud structurally can't answer - for the regulated buyer who can't send data out. We tie on retrieval (we inherit Graphiti's); we win where they're blank.</p>
  <table>
   <thead><tr><th>Capability</th><th>Cogniflow</th><th>Hosted recall-optimized memory</th></tr></thead>
   <tbody>
-   <tr><td>Standard retrieval / recall</td><td class="tie">Tie &mdash; inherited, not a win</td><td class="win">Strong</td></tr>
-   <tr><td>Temporal correctness / as-of replay</td><td class="win">Yes</td><td class="miss">&mdash; no time axis</td></tr>
-   <tr><td>Auditable provenance &mdash; "why did this change?"</td><td class="win">Yes</td><td class="miss">&mdash;</td></tr>
-   <tr><td>System-time replay (what did it <em>know</em> then)</td><td class="win">Yes</td><td class="miss">&mdash;</td></tr>
-   <tr><td>Self-hostable / in-VPC / data never leaves</td><td class="win">Yes</td><td class="miss">&mdash; hosted SaaS</td></tr>
+   <tr><td>Standard retrieval / recall</td><td class="tie">Tie - inherited, not a win</td><td class="win">Strong</td></tr>
+   <tr><td>Temporal correctness / as-of replay</td><td class="win">Yes</td><td class="miss"> - no time axis</td></tr>
+   <tr><td>Auditable provenance - "why did this change?"</td><td class="win">Yes</td><td class="miss"> - </td></tr>
+   <tr><td>System-time replay (what did it <em>know</em> then)</td><td class="win">Yes</td><td class="miss"> - </td></tr>
+   <tr><td>Self-hostable / in-VPC / data never leaves</td><td class="win">Yes</td><td class="miss"> - hosted SaaS</td></tr>
   </tbody>
  </table>
  <p class="note">The tie row is the point: an all-green matrix is the one nobody believes.</p>
 </section>
 
 <section>
- <p class="eyebrow">Real benchmark &mdash; every number from a live run</p>
+ <p class="eyebrow">Real benchmark - every number from a live run</p>
  <h2>Where we tie, and where it isn't close</h2>
  <p class="lede">Same corpus, same model, same embeddings. The only difference is memory. Panel 1 is an honest tie on stable facts. Panel 2 is what a temporal store is <em>for</em>.</p>
  <div class="panels" id="panels"></div>
@@ -94,11 +94,11 @@
 
 <section>
  <p class="eyebrow">Honesty is the marketing</p>
- <h2>What we are &mdash; and what we're not</h2>
+ <h2>What we are - and what we're not</h2>
  <ul class="b">
-  <li><b>Structured input is deterministic.</b> Facts you assert (OKF <code>fact</code> keys) get precise temporal validity. Facts extracted from raw prose are only as good as the extraction LLM &mdash; each served fact is labeled with its confidence, so nothing is laundered.</li>
+  <li><b>Structured input is deterministic.</b> Facts you assert (OKF <code>fact</code> keys) get precise temporal validity. Facts extracted from raw prose are only as good as the extraction LLM - each served fact is labeled with its confidence, so nothing is laundered.</li>
   <li><b>Retrieval is inherited, not class-leading.</b> We use Graphiti's retrieval; we don't out-retrieve the recall specialists. An optional reranker is measured, off by default, on by evidence.</li>
-  <li><b>Not "first" at temporal RAG.</b> Validity filters and temporal-graph RAG exist. What we ship is honest <em>system-time replay</em> &mdash; the un-knowing invariant &mdash; as auditable, self-hostable infrastructure.</li>
+  <li><b>Not "first" at temporal RAG.</b> Validity filters and temporal-graph RAG exist. What we ship is honest <em>system-time replay</em> - the un-knowing invariant - as auditable, self-hostable infrastructure.</li>
   <li><b>Read-only audit surface.</b> The replay dashboard is a window onto the ledger, never a second product; the answer path never writes.</li>
  </ul>
 </section>
@@ -106,7 +106,7 @@
 <section style="border-bottom:none">
  <p class="eyebrow">Try it</p>
  <h2>Run it in your own environment</h2>
- <p class="lede">Your infrastructure, your LLM, your embedder &mdash; your data never leaves. For an audit product, the strongest CTA is: read the code that produces the audit trail.</p>
+ <p class="lede">Your infrastructure, your LLM, your embedder - your data never leaves. For an audit product, the strongest CTA is: read the code that produces the audit trail.</p>
  <div class="cta">
   <a class="btn p" href="https://github.com/Nagendhra-web/cogniflow">Read the code &rarr;</a>
   <a class="btn s" href="index.html">Reproduce the demo</a>
@@ -115,7 +115,7 @@
 </section>
 
 <footer>
- Cogniflow &mdash; temporal, self-falsifying belief substrate for agentic RAG. Apache-2.0.
+ Cogniflow - temporal, self-falsifying belief substrate for agentic RAG. Apache-2.0.
  Benchmark captured <span id="cap"></span>. All figures from live runs; none fabricated.
 </footer>
 
@@ -127,7 +127,7 @@ document.getElementById("proof").innerHTML =
   `<div class="q">${H.query}</div>`+
   `<div class="r">Cogniflow, as of 2015 &nbsp;&rarr;&nbsp; <b>${H.past_2015.answer.replace(/\*\*/g,"")}</b></div>`+
   `<div class="r">Cogniflow, now &nbsp;&rarr;&nbsp; <b>${H.now.answer.replace(/\*\*/g,"")}</b></div>`+
-  `<div class="r x">Plain RAG, as of 2015 &nbsp;&rarr;&nbsp; can't answer it at all &mdash; no temporal axis.</div>`;
+  `<div class="r x">Plain RAG, as of 2015 &nbsp;&rarr;&nbsp; can't answer it at all - no temporal axis.</div>`;
 document.getElementById("asof-a").textContent = H.past_2015.answer.replace(/\*\*/g,"");
 
 const P = BENCH.panels;
@@ -143,7 +143,7 @@ function panel(key, title, cap){
     row("Cogniflow", p.cogniflow_score, "#56d39a")+`</div>`;
 }
 document.getElementById("panels").innerHTML =
-  panel("standard","Standard questions","Stable facts that don't change. Both do well &mdash; an honest tie.")+
+  panel("standard","Standard questions","Stable facts that don't change. Both do well - an honest tie.")+
   panel("as_of","As-of questions","What was true at a past date. Plain RAG has no time axis.");
 const dp = P.as_of.plain_score, dc = P.as_of.cogniflow_score, n = P.as_of.n;
 document.getElementById("bench-note").textContent =

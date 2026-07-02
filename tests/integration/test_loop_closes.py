@@ -1,4 +1,4 @@
-"""Phase 2 acceptance #1 + #2 - the loop closes through the agent.
+"""milestone acceptance #1 + #2 - the loop closes through the agent.
 
 The agent records a contradicting fact via record_observation (seam d); after the
 queue drains, a point-in-time read reflects the supersession, and the old edge was
@@ -118,14 +118,14 @@ def test_loop_closes_through_agent() -> None:
                 await recorder.run(
                     user_msg="Acme Corp moved its headquarters to Seattle, effective 2024."
                 )
-                await queue.drain()  # belief lag resolved deterministically
+                await queue.drain() # belief lag resolved deterministically
                 check = await backend.read(
                     RetrievalQuery(text="Acme Corp headquarters", as_of=_dt(2025), top_k=5)
                 )
                 if any("Seattle" in s.belief.statement for s in check.results):
                     landed = True
                     break
-                await asyncio.sleep(3 * (attempt + 1))  # backoff (also dodges rate limits)
+                await asyncio.sleep(3 * (attempt + 1)) # backoff (also dodges rate limits)
             assert landed, f"recording agent did not land the Seattle fact in {attempts} attempts"
 
             # acceptance #1: the loop closed - the agent's own WRITE reshaped what a
