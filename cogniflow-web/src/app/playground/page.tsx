@@ -11,6 +11,8 @@ import {
   Loader2,
   RotateCcw,
   SendHorizontal,
+  ShieldCheck,
+  TriangleAlert,
   Upload,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -331,6 +333,25 @@ export default function Playground() {
                     {Object.entries(answer.confidence).map(([k, v]) => (
                       <Badge key={k} variant="outline" className={confidenceBadgeClass(k)}>{k} ×{v}</Badge>
                     ))}
+                  </div>
+                )}
+                {/* F2: the post-hoc faithfulness verdict - checked, not just asked */}
+                {answer.faithfulness && answer.faithfulness.status === "grounded" && (
+                  <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-win/30 bg-win/10 px-2.5 py-1 text-xs font-medium text-win">
+                    <ShieldCheck className="size-3.5" /> grounded — every claim checked against the served facts
+                  </div>
+                )}
+                {answer.faithfulness && answer.faithfulness.status === "unsupported_claims" && (
+                  <div className="mt-3 rounded-lg border border-warn/40 bg-warn/10 p-3 text-xs">
+                    <div className="flex items-center gap-1.5 font-semibold text-warn">
+                      <TriangleAlert className="size-3.5" />
+                      {answer.faithfulness.unsupported_claims.length} claim(s) not supported by the served facts
+                    </div>
+                    <ul className="mt-1.5 space-y-1 text-muted-foreground">
+                      {answer.faithfulness.unsupported_claims.map((c, i) => (
+                        <li key={i} className="line-through decoration-warn/60">{c}</li>
+                      ))}
+                    </ul>
                   </div>
                 )}
               </motion.div>

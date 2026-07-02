@@ -25,12 +25,22 @@ export type ContextResponse = {
   notes: string[];
 };
 
+// F2: the post-hoc faithfulness report - the answer is CHECKED against the served facts.
+export type FaithfulnessReport = {
+  checker: string;
+  status: "grounded" | "unsupported_claims" | "no_checkable_claims" | "unchecked";
+  claims: { claim: string; status: string; best_fact: string | null; score: number | null }[];
+  unsupported_claims: string[];
+  note: string | null;
+};
+
 export type AnswerResponse = {
   answer: string;
   as_of: string | null;
   generator_model: string | null;
   confidence: Record<string, number>;
   facts: ServedFact[];
+  faithfulness?: FaithfulnessReport | null;
 };
 
 export type Health = {
