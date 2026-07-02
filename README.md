@@ -35,10 +35,10 @@ Consider one fact that changed: Acme Corp's HQ was Boston (2019 filing), then De
 
 | Question | Vector RAG | Valid-time RAG | Cogniflow |
 |---|---|---|---|
-| Where is Acme HQ now? | Denver | Denver | Denver |
-| Where was it in 2020? | not answerable | Boston | Boston |
-| What did we believe in 2021, before the 2022 filing? | not answerable | not answerable | **Boston, Denver un-known** |
-| Show the timeline and what superseded what | no | partial | full provenance and audit |
+| Where is Acme HQ now? | ✅ Denver | ✅ Denver | ✅ Denver |
+| Where was it in 2020? | ❌ | ✅ Boston | ✅ Boston |
+| What did we believe in 2021, before the 2022 filing? | ❌ | ❌ | ✅ **Boston, Denver un-known** |
+| Show the timeline and what superseded what | ❌ | ⚠️ partial | ✅ full provenance and audit |
 
 The third row is system-time replay. It requires an independent record of when each fact was
 learned, and the discipline never to let a later correction leak into a past belief state:
