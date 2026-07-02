@@ -1,44 +1,74 @@
+<div align="center">
+
 # Cogniflow
 
+### Prove what your AI knew — and when.
+
+**The bi-temporal RAG platform.** Any document in → a cited, temporally-correct answer out —
+plus the one thing a plain RAG cannot do: **replay what the system believed at any past
+moment**, without leaking later corrections into the past.
+
 [![ci](https://github.com/Nagendhra-web/cogniflow/actions/workflows/ci.yml/badge.svg)](https://github.com/Nagendhra-web/cogniflow/actions/workflows/ci.yml)
+[![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 
-**A bi-temporal RAG platform: any document in → a cited, temporally-correct answer out — plus
-the one thing a plain RAG cannot do: replay what the system *believed* at a past moment.**
+[60-second demo](#-60-second-demo-from-nothing) ·
+[How it works](#-architecture) ·
+[API](#-api-curl--against-the-secure-by-default-server) ·
+[Honest limitations](#-honest-limitations)
 
-Cogniflow stores every fact on two independent time axes — *when it was true in the world*
-(event time) and *when the system learned it* (system time) — so it can answer not just "what
-is true now?" and "what was true in 2020?" but **"what did we believe in 2021, before the 2022
-correction — without leaking that correction backward?"** That last question is the wedge.
+</div>
 
 ---
 
-## The one thing plain RAG can't do
+## Why
 
-Take one fact that changed. Acme Corp's HQ was **Boston** (2019 filing), then **Denver** (2022
-filing).
+Every fact in Cogniflow lives on **two independent time axes** — *when it was true in the
+world* (event time) and *when the system learned it* (system time). That second axis is what
+the rest of the RAG field doesn't have, and it's what makes answers **defensible**, not just
+plausible.
+
+Take one fact that changed: Acme Corp's HQ was **Boston** (2019 filing), then **Denver**
+(2022 filing).
 
 | Question | Plain / vector RAG | Valid-time ("temporal") RAG | **Cogniflow** |
 |---|---|---|---|
 | Where is Acme HQ **now**? | ✅ Denver | ✅ Denver | ✅ Denver |
 | Where was it **in 2020**? | ❌ | ✅ Boston | ✅ Boston |
 | What did we **believe in 2021**, before the 2022 filing? | ❌ | ❌ | ✅ **Boston** (Denver un-known) |
-| Show the timeline + who superseded what | ❌ | partial | ✅ provenance + audit |
+| Show the timeline + what superseded what | ❌ | partial | ✅ provenance + audit |
 
-The third row is **system-time replay**. It needs an independent record of *when each fact was
-learned*, and the discipline not to let a later correction leak into a past belief. That is the
-tested centerpiece of this system.
+The third row is **system-time replay**. It requires an independent record of *when each fact
+was learned* — and the discipline never to let a later correction leak into a past belief
+(the **un-knowing invariant**, enforced in CI). No mainstream RAG stack ships this.
 
----
+## What you get
 
-## 60-second demo (from nothing)
+- **Bi-temporal knowledge graph** — four timestamps per fact (`valid_at`/`invalid_at`,
+  `created_at`/`expired_at`), stored in FalkorDB or Neo4j.
+- **As-of retrieval** — ask any question *as of* any instant; context is validity-filtered
+  before ranking.
+- **System-time replay & audit** — reconstruct what the system believed at any past moment;
+  a live web scrubber makes it visible.
+- **Supersession with provenance** — a correcting fact expires the old one and stamps a
+  `superseded_by` back-link at write time; every answer carries its citations.
+- **Cited, grounded generation** — answers built only from the served, as-of-filtered facts,
+  with per-fact confidence labels.
+- **Everything is a plug** — embedder, reranker, generation model, and graph backend are
+  config-selected and fail-loud; bring hosted APIs or fully local models.
+- **Secure by default** — bearer-token auth, token-scoped sessions, rate limits, upload caps
+  (baseline security for trusted environments — see [SECURITY.md](SECURITY.md)).
+- **Self-hostable end to end** — your documents, your models, your infrastructure; nothing
+  leaves your network.
 
-Prereqs: Docker. No `.env`, no keys — the hero scenario is **key-free**.
+## ⚡ 60-second demo (from nothing)
+
+Prereqs: Docker. No `.env`, no API keys — the hero scenario is **key-free**.
 
 ```bash
 git clone https://github.com/Nagendhra-web/cogniflow && cd cogniflow
 docker compose up -d --build       # FalkorDB + API + web, secure-by-default (auth ON)
 bash scripts/demo.sh               # waits for the API, seeds Acme, asserts the four questions
-# docker compose logs -f           # follow logs   ·   docker compose down   # stop it
 ```
 
 `scripts/demo.sh` prints (and asserts):
@@ -50,18 +80,14 @@ Q3  replay(2021)     -> Boston   << the 2022 Denver correction is un-known
 Q4  timeline         -> Boston (2019 report) superseded by Denver (2022 press release)
 ```
 
-Then open the **live scrubber** at <http://localhost:3000/playground> and drag the system-time
-slider across 2022 — the answer flips Boston↔Denver in front of you.
+Then open the **live scrubber** at <http://localhost:3000/playground> and drag the
+system-time slider across 2022 — the answer flips Boston↔Denver in front of you.
 
-> **Deployment honesty:** `docker compose up` stands up and *runs* the whole stack in a
-> **local / trusted environment**. It is **not** production-grade HA — the in-memory session
-> state and in-process queue don't survive multi-replica; k8s/Helm/scale are a later phase.
-> The API is **baseline-secure** (bearer-token auth, token-scoped access, rate limits, upload
-> caps) — see [SECURITY.md](SECURITY.md). Not "enterprise-ready."
+> **Deployment honesty:** `docker compose up` stands up the whole stack for a **local /
+> trusted environment**. It is not production-grade HA (in-memory session state and an
+> in-process queue don't survive multi-replica) — that re-architecture is on the roadmap.
 
----
-
-## Architecture
+## 🏗 Architecture
 
 ```
                           ┌─────────────────────────────────────────────┐
@@ -90,22 +116,21 @@ slider across 2022 — the answer flips Boston↔Denver in front of you.
                                                 └────────────────────────────────────────┘
 ```
 
-**The core is dependency-free.** `cogniflow.core` imports only the standard library; heavy deps
-(`graphiti-core`, `falkordb`, `llama-index-core`) are pulled in by *backends* and *bridges*
-behind optional extras. Embedder, reranker, generation model, and graph backend are each
-config-selected, fail-loud plugs.
+**The core is dependency-free.** `cogniflow.core` imports only the standard library; heavy
+dependencies (`graphiti-core`, `falkordb`, `llama-index-core`) live behind optional extras in
+*backends* and *bridges*.
 
-### How the bitemporal model works
-- **Event time** `[valid_at, invalid_at)` — when the fact was true in the world. Answers "as of
-  2020."
-- **System time** `[created_at, expired_at)` — when the system learned/retracted it. Answers
-  "what did we believe at S," and is what makes the un-knowing replay possible.
-- A correction **supersedes**: the old fact gets `invalid_at` (event) **and** `expired_at`
+### The bitemporal model, in four lines
+
+- **Event time** `[valid_at, invalid_at)` — when the fact was true in the world → "as of 2020."
+- **System time** `[created_at, expired_at)` — when the system learned/retracted it → "what
+  did we believe at S," and the un-knowing replay.
+- A correction **supersedes**: the old fact gets `invalid_at` (event) *and* `expired_at`
   (system) plus a `superseded_by` back-link, stamped at write time.
+- Replay to S drops everything learned after S — **including the knowledge that a fact was
+  later corrected**. That's the invariant.
 
----
-
-## Use it on your own documents (local — your data never leaves)
+## 📄 Use it on your own documents (local — your data never leaves)
 
 ```bash
 # 1. real generation + retrieval need providers (the seeded hero does not). Put keys in .env:
@@ -117,20 +142,18 @@ curl -H "Authorization: Bearer $TOKEN" -F session_id=mine -F reference_time=2019
      -F file=@your_report.pdf http://localhost:8000/api/ingest
 ```
 
-**Retrieval quality needs a real embedder.** Cogniflow boots on the key-free `hash` embedder so
-the engine runs dependency-free — but hash is **meaning-blind** (lexical, not semantic) and it
-**warns loudly** at startup and in every response until you configure one:
+**Retrieval quality needs a real embedder.** Cogniflow boots on the key-free `hash` embedder
+so the engine runs dependency-free — but hash is **meaning-blind** (lexical, not semantic) and
+it **warns loudly** at startup and in every response until you configure one:
 
 - **key-free, needs torch** — `pip install -e ".[embeddings]"`, then `COGNIFLOW_EMBEDDER=bge-m3-local`
 - **dependency-light, needs a key** — `COGNIFLOW_EMBEDDER=bge-m3` + `COGNIFLOW_EMBEDDER_API_KEY=…`
 
-A real embedder fixes **retrieval** (which facts come back). It does **not** lift the prose
-**extraction** floor (how well facts are pulled from prose — bounded by the LLM, and labeled per
-fact via `valid_at_source`). See [docs/EMBEDDERS.md](docs/EMBEDDERS.md).
+A real embedder fixes **retrieval** (which facts come back). It does not lift the prose
+**extraction** floor (bounded by the LLM, and labeled per fact via `valid_at_source`).
+See [docs/EMBEDDERS.md](docs/EMBEDDERS.md).
 
----
-
-## API (curl) — against the secure-by-default server
+## 🔌 API (curl) — against the secure-by-default server
 
 Every route but `/api/health` needs the bearer token (`COGNIFLOW_API_TOKENS`; the compose
 provisions `cogniflow-demo-token`). A session is scoped to the token that created it.
@@ -142,8 +165,8 @@ H="Authorization: Bearer $TOKEN"
 
 # seed the demo (key-free), then the four questions:
 curl -H "$H" -X POST "$API/api/demo/seed"
-curl -H "$H" "$API/api/audit/current?session_id=demo_acme"                    # -> Denver (now)
-curl -H "$H" "$API/api/audit/event?session_id=demo_acme&as_of=2020-06-01"     # -> Boston (event time)
+curl -H "$H" "$API/api/audit/current?session_id=demo_acme"                        # -> Denver (now)
+curl -H "$H" "$API/api/audit/event?session_id=demo_acme&as_of=2020-06-01"         # -> Boston (event time)
 curl -H "$H" "$API/api/audit/replay?session_id=demo_acme&system_time=2021-06-01"  # -> Boston (system-time replay)
 curl -H "$H" "$API/api/audit/timeline/demo-belief-boston?session_id=demo_acme"    # -> provenance + supersession
 
@@ -152,48 +175,42 @@ curl -H "$H" -H 'Content-Type: application/json' -X POST "$API/api/context" \
      -d '{"session_id":"mine","query":"Where is Acme headquartered?","as_of":"2020-06-01"}'
 ```
 
-Omit the token and you get `401`; use another token against a session you don't own and you get
-`403`.
+Omit the token → `401`. Use another token against a session you don't own → `403`.
 
----
-
-## The invariant we enforce
+## ✅ The invariant we enforce
 
 The headline property is the **un-knowing invariant**: replaying to a system-time *before* a
 correction returns what was believed then, and does **not** leak the later invalidation
-backward. It is enforced two ways:
+backward. Enforced two ways:
 
 - **Pure** — [`tests/test_audit_replay.py`](tests/test_audit_replay.py) /
-  [`tests/test_validity_policy.py`](tests/test_validity_policy.py) assert the reconstruction as
-  deterministic functions (no infra).
-- **Live** — [`tests/integration/test_replay_seeded.py`](tests/integration/test_replay_seeded.py)
-  asserts it end-to-end against a real **FalkorDB**, **no LLM key**, in the `replay-invariant`
-  job of [`.github/workflows/ci.yml`](.github/workflows/ci.yml). If replay ever leaks a later
-  correction into the past, CI goes red.
+  [`tests/test_validity_policy.py`](tests/test_validity_policy.py): the reconstruction and
+  as-of semantics as deterministic functions (no infra).
+- **Live** — [`tests/integration/test_replay_seeded.py`](tests/integration/test_replay_seeded.py):
+  the same invariant end-to-end against a real **FalkorDB** service with **no LLM key**, in
+  the `replay-invariant` job of [`ci.yml`](.github/workflows/ci.yml). If replay ever leaks a
+  later correction into the past, CI goes red.
 
 ```
 replay(2021) -> Boston   (invalid_at un-known; the 2022 move not yet learned)
 replay(2023) -> Denver   (the correction is now known)
 ```
 
----
+## ⚠ Honest limitations
 
-## Honest limitations
-
-- **Baseline security, not enterprise.** Bearer auth + scoped access + rate limits + upload
-  caps — safe in a *trusted environment*. RBAC, access-audit logging, GDPR deletion, SOC2, and
-  hardened isolation are not here. See [SECURITY.md](SECURITY.md).
-- **Not production HA.** In-memory session dict + in-process queue break multi-replica; k8s and
-  the scale re-architecture are a later phase.
+- **Baseline security, not enterprise.** Bearer auth + scoped sessions + rate limits + upload
+  caps — safe in a *trusted environment*. RBAC, access-audit logging, GDPR deletion, SOC2,
+  and certified isolation are not here. See [SECURITY.md](SECURITY.md).
+- **Not production HA.** In-memory session state + in-process queue break multi-replica; the
+  scale re-architecture is on the roadmap.
 - **Contradiction detection is an LLM call** — reliable on structured input, best-effort on
-  prose. `verify_fact`'s recall on the current model is a measured floor, tracked in
+  prose. `verify_fact`'s measured recall floor is tracked, un-massaged, in
   [PROJECT_STATUS.md](PROJECT_STATUS.md).
-- **Generation grounding is prompt-instruction only** (no post-hoc faithfulness check yet).
+- **Generation grounding is prompt-instruction only** (a post-hoc faithfulness check is the
+  next major roadmap item).
 - Full defect ledger: [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md).
 
----
-
-## Development
+## 🛠 Development
 
 ```bash
 pip install -e ".[dev]"     # dependency-free core + dev tools
@@ -201,8 +218,10 @@ ruff check .
 pytest                      # contracts + conformance; integration tests self-skip without infra
 ```
 
-Extend it without touching core — [CONTRIBUTING.md](CONTRIBUTING.md),
-[docs/EXTENDING.md](docs/EXTENDING.md). Design and status: [PROJECT_STATUS.md](PROJECT_STATUS.md).
+Every number this project publishes comes from a live run — benchmarks carry a content hash
+and a reproduce command. Extend it without touching core:
+[CONTRIBUTING.md](CONTRIBUTING.md) · [docs/EXTENDING.md](docs/EXTENDING.md) ·
+[PROJECT_STATUS.md](PROJECT_STATUS.md).
 
 ## License
 
