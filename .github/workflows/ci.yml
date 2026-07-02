@@ -55,5 +55,5 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[all,dev]"
-      - name: Un-knowing invariant (live FalkorDB, no LLM key)
-        run: pytest tests/integration/test_replay_seeded.py -q
+      - name: Un-knowing invariant + API security (live FalkorDB, no LLM key)
+        run: pytest tests/integration/test_replay_seeded.py tests/test_api_security.py -q

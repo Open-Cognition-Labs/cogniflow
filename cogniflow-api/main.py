@@ -6,15 +6,25 @@ answer + the audit/replay ledger. Each browser session is an isolated FalkorDB g
 
 Run (needs FalkorDB + .env with COGNIFLOW_LLM_* and COGNIFLOW_EMBEDDER_API_KEY):
     pip install -e ".[all,serve]"
-    python -m uvicorn cogniflow-api.main:app --port 8000
-or  python cogniflow-api/main.py
+    python cogniflow-api/main.py            # loopback + open (dev); warns loudly it is open
+
+Baseline security (safe in a TRUSTED environment, NOT enterprise-ready - see SECURITY.md):
+    COGNIFLOW_API_TOKENS=tok1,tok2          # require `Authorization: Bearer <tok>` on every route
+                                           #   except /api/health; each session is scoped to the
+                                           #   token that created it (no cross-tenant read/reset)
+    COGNIFLOW_BIND_HOST=0.0.0.0            # expose off-host (refuses if open + non-loopback)
+    COGNIFLOW_RATE_LIMIT_PER_MIN=30         # per-token/IP limit on the LLM/embedder endpoints
+    COGNIFLOW_MAX_UPLOAD_BYTES=10485760     # upload cap; COGNIFLOW_PORT sets the port
 """
 
 from __future__ import annotations
 
+import logging
 import os
+import re
 import sys
 import tempfile
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -29,7 +39,16 @@ try:
 except Exception:
     pass
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile  # noqa: E402
+from fastapi import (  # noqa: E402
+    Depends,
+    FastAPI,
+    File,
+    Form,
+    Header,
+    HTTPException,
+    Request,
+    UploadFile,
+)
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
 
@@ -63,9 +82,100 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# session_id -> {"config": {...}, "backend": GraphitiFalkorDBBackend | None}
+# session_id -> {"config": {...}, "backend": GraphitiFalkorDBBackend | None, "owner": token|None}
 _SESSIONS: dict[str, dict] = {}
 _GENERATOR = None
+
+
+# ---- security: baseline (Phase 4) ------------------------------------------
+# "Safe to run in a TRUSTED ENVIRONMENT" - NOT enterprise-ready. This layer adds bearer-token
+# auth, token-scoped session access (a caller touches only sessions its token owns), rate limits
+# on the LLM/embedder endpoints, upload caps, and loopback-by-default binding. Enterprise controls
+# (RBAC, access-audit logging, GDPR deletion, hardened multi-tenant isolation, SOC2) are OUT OF
+# SCOPE by design; see SECURITY.md for the honest boundary.
+_LOG = logging.getLogger("cogniflow.api")
+_AUTH_TOKENS = {t.strip() for t in os.getenv("COGNIFLOW_API_TOKENS", "").split(",") if t.strip()}
+_AUTH_OPEN = not _AUTH_TOKENS  # no tokens configured -> unauthenticated (dev) mode
+_BIND_HOST = os.getenv("COGNIFLOW_BIND_HOST", "127.0.0.1")
+_LOOPBACK = {"127.0.0.1", "localhost", "::1", ""}
+_MAX_UPLOAD = int(os.getenv("COGNIFLOW_MAX_UPLOAD_BYTES", str(10 * 1024 * 1024)))  # 10 MB
+_ALLOWED_SUFFIXES = {".pdf", ".md", ".markdown", ".txt"}
+_RATE_LIMIT = int(os.getenv("COGNIFLOW_RATE_LIMIT_PER_MIN", "30"))
+_RATE_WINDOW = 60.0
+_RATE: dict[str, list[float]] = {}
+_SID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+_SECRET_KEYS = ("embedder_api_key", "reranker_api_key", "generator_api_key", "api_key")
+
+# Fail-loud: an unauthenticated API on a non-loopback interface lets any caller read or wipe any
+# session. Refuse to start unless explicitly overridden - never silently open on a public bind.
+if _AUTH_OPEN and _BIND_HOST not in _LOOPBACK and os.getenv("COGNIFLOW_ALLOW_OPEN") != "1":
+    raise RuntimeError(
+        f"Refusing to start: no COGNIFLOW_API_TOKENS set AND binding non-loopback {_BIND_HOST!r}. "
+        "An unauthenticated API on a public interface lets any caller read/wipe any session. Set "
+        "COGNIFLOW_API_TOKENS, or bind 127.0.0.1, or (dev only, understood) COGNIFLOW_ALLOW_OPEN=1."
+    )
+if _AUTH_OPEN:
+    _LOG.warning(
+        "SECURITY: API running WITHOUT authentication (no COGNIFLOW_API_TOKENS). Anyone who can "
+        "reach this port can read/reset any session. OK only on loopback for local dev - set "
+        "COGNIFLOW_API_TOKENS before exposing beyond localhost."
+    )
+elif _BIND_HOST not in _LOOPBACK:
+    _LOG.warning(
+        "SECURITY: binding non-loopback %r - reachable off-host. Ensure network controls "
+        "(firewall/VPC) in addition to the bearer token.", _BIND_HOST,
+    )
+
+
+async def require_auth(authorization: str = Header(default="")) -> str | None:
+    """Bearer-token gate on every route except /api/health. Open (dev) mode returns None when no
+    tokens are configured (startup warned loudly). With tokens set, a missing/invalid token is a
+    401 - never silently open (fail-loud, like the embedder/generator plugs)."""
+    if _AUTH_OPEN:
+        return None
+    scheme, _, tok = authorization.partition(" ")
+    if scheme.lower() != "bearer" or tok not in _AUTH_TOKENS:
+        raise HTTPException(
+            401, "missing or invalid bearer token", headers={"WWW-Authenticate": "Bearer"}
+        )
+    return tok
+
+
+def _guard(session_id: str, token: str | None) -> None:
+    """Validate + authorize a session reference. Format-checks the id (prevents odd graph names),
+    then enforces token-scoped ownership: a session is owned by the token that created it, and only
+    that token may read/reset it. This closes the day-one hole (any caller wiping any tenant's
+    graph). Open mode (token None) skips ownership - the whole API is unauthenticated there."""
+    if not _SID_RE.match(session_id or ""):
+        raise HTTPException(422, "invalid session_id (allowed: A-Za-z0-9_-, 1-64 chars)")
+    if token is None:
+        return
+    sess = _SESSIONS.get(session_id)
+    if sess is not None and sess.get("owner") not in (None, token):
+        raise HTTPException(403, "forbidden: this session belongs to a different token")
+    sess = _SESSIONS.setdefault(session_id, {"config": {}, "backend": None})
+    sess.setdefault("owner", token)
+
+
+def _rate_limit(request: Request, token: str | None) -> None:
+    """Per-token (or per-IP) sliding-window limit on the endpoints that spend LLM/embedder money,
+    so a burst is throttled (429) rather than a cost/availability bomb."""
+    key = token or (request.client.host if request.client else "unknown")
+    now = time.monotonic()
+    hits = [t for t in _RATE.get(key, ()) if t > now - _RATE_WINDOW]
+    if len(hits) >= _RATE_LIMIT:
+        raise HTTPException(429, "rate limit exceeded; slow down", headers={"Retry-After": "60"})
+    hits.append(now)
+    _RATE[key] = hits
+
+
+def _safe_config(config: dict) -> dict:
+    """Config for a response with all secrets redacted - never echo a provider key back."""
+    return {
+        k: ("***" if (v and any(s in k for s in _SECRET_KEYS)) else v)
+        for k, v in config.items()
+        if k != "gen"
+    }
 
 
 def _parse_dt(value: str | None) -> datetime | None:
@@ -202,7 +312,7 @@ async def health() -> dict:
     }
 
 
-@app.get("/api/plugins")
+@app.get("/api/plugins", dependencies=[Depends(require_auth)])
 async def plugins() -> dict:
     return {
         "embedders": available_embedders(),
@@ -214,14 +324,15 @@ async def plugins() -> dict:
 
 
 @app.post("/api/session")
-async def new_session() -> dict:
+async def new_session(token: str | None = Depends(require_auth)) -> dict:
     sid = uuid.uuid4().hex[:12]
-    _SESSIONS[sid] = {"config": {}, "backend": None}
+    _SESSIONS[sid] = {"config": {}, "backend": None, "owner": token}
     return {"session_id": sid}
 
 
 @app.post("/api/config")
-async def set_config(cfg: PluginConfig) -> dict:
+async def set_config(cfg: PluginConfig, token: str | None = Depends(require_auth)) -> dict:
+    _guard(cfg.session_id, token)
     sess = _SESSIONS.setdefault(cfg.session_id, {"config": {}, "backend": None})
     c = sess["config"]
     if cfg.embedder:
@@ -258,18 +369,30 @@ async def set_config(cfg: PluginConfig) -> dict:
     if sess["backend"] is not None:
         await sess["backend"].close()
         sess["backend"] = None
-    return {"ok": True, "config": {k: v for k, v in sess["config"].items() if k != "gen"}}
+    return {"ok": True, "config": _safe_config(sess["config"])}
 
 
 @app.post("/api/ingest")
 async def ingest(
+    request: Request,
     session_id: str = Form(...),
     reference_time: str | None = Form(None),
     file: UploadFile = File(...),
+    token: str | None = Depends(require_auth),
 ) -> dict:
+    _guard(session_id, token)
+    _rate_limit(request, token)
+    # Validate BEFORE processing: reject wrong type / oversized upfront, before touching the
+    # backend or spending parse/LLM resources.
+    suffix = Path(file.filename or "").suffix.lower()
+    if suffix not in _ALLOWED_SUFFIXES:
+        raise HTTPException(
+            415, f"unsupported file type {suffix or '(none)'}; allowed: {sorted(_ALLOWED_SUFFIXES)}"
+        )
+    data = await file.read(_MAX_UPLOAD + 1)  # bounded read (never load an unbounded file)
+    if len(data) > _MAX_UPLOAD:
+        raise HTTPException(413, f"file too large; limit is {_MAX_UPLOAD} bytes")
     backend = await _backend(session_id)
-    suffix = Path(file.filename or "upload.txt").suffix or ".txt"
-    data = await file.read()
     tmp = Path(tempfile.gettempdir()) / f"cf_{uuid.uuid4().hex}{suffix}"
     tmp.write_bytes(data)
     try:
@@ -287,9 +410,13 @@ async def ingest(
 
 
 @app.post("/api/ingest-text")
-async def ingest_text(body: TextIngest) -> dict:
+async def ingest_text(
+    body: TextIngest, request: Request, token: str | None = Depends(require_auth)
+) -> dict:
     from cogniflow.core.types import Episode, utc_now
 
+    _guard(body.session_id, token)
+    _rate_limit(request, token)
     backend = await _backend(body.session_id)
     ref = _parse_dt(body.reference_time) or utc_now()
     ep = Episode(
@@ -309,14 +436,18 @@ async def ingest_text(body: TextIngest) -> dict:
 
 
 @app.post("/api/context")
-async def context(q: Query) -> dict:
+async def context(q: Query, request: Request, token: str | None = Depends(require_auth)) -> dict:
+    _guard(q.session_id, token)
+    _rate_limit(request, token)
     backend = await _backend(q.session_id)
     res = await serve_context(backend, q.query, as_of=_parse_dt(q.as_of), top_k=q.top_k)
     return res.to_dict()
 
 
 @app.post("/api/answer")
-async def answer(q: Query) -> dict:
+async def answer(q: Query, request: Request, token: str | None = Depends(require_auth)) -> dict:
+    _guard(q.session_id, token)
+    _rate_limit(request, token)
     backend = await _backend(q.session_id)
     res = await generate_answer(
         backend, q.query, _sess_generator(q.session_id), as_of=_parse_dt(q.as_of), top_k=q.top_k
@@ -325,7 +456,8 @@ async def answer(q: Query) -> dict:
 
 
 @app.get("/api/audit/current")
-async def audit_current(session_id: str) -> dict:
+async def audit_current(session_id: str, token: str | None = Depends(require_auth)) -> dict:
+    _guard(session_id, token)
     backend = await _backend(session_id)
     beliefs = await backend.event_time_query(datetime.now(timezone.utc))
     names = await _names(backend, beliefs)
@@ -333,7 +465,10 @@ async def audit_current(session_id: str) -> dict:
 
 
 @app.get("/api/audit/event")
-async def audit_event(session_id: str, as_of: str) -> dict:
+async def audit_event(
+    session_id: str, as_of: str, token: str | None = Depends(require_auth)
+) -> dict:
+    _guard(session_id, token)
     backend = await _backend(session_id)
     beliefs = await backend.event_time_query(_parse_dt(as_of))
     names = await _names(backend, beliefs)
@@ -341,7 +476,10 @@ async def audit_event(session_id: str, as_of: str) -> dict:
 
 
 @app.get("/api/audit/replay")
-async def audit_replay(session_id: str, system_time: str) -> dict:
+async def audit_replay(
+    session_id: str, system_time: str, token: str | None = Depends(require_auth)
+) -> dict:
+    _guard(session_id, token)
     backend = await _backend(session_id)
     beliefs = await backend.system_time_replay(_parse_dt(system_time))
     names = await _names(backend, beliefs)
@@ -349,7 +487,10 @@ async def audit_replay(session_id: str, system_time: str) -> dict:
 
 
 @app.get("/api/audit/provenance/{belief_id}")
-async def audit_provenance(belief_id: str, session_id: str) -> dict:
+async def audit_provenance(
+    belief_id: str, session_id: str, token: str | None = Depends(require_auth)
+) -> dict:
+    _guard(session_id, token)
     backend = await _backend(session_id)
     trace = await backend.provenance_trace(belief_id)
     uuids = list(trace.asserted_by) + (
@@ -360,7 +501,10 @@ async def audit_provenance(belief_id: str, session_id: str) -> dict:
 
 
 @app.get("/api/audit/timeline/{belief_id}")
-async def audit_timeline(belief_id: str, session_id: str) -> dict:
+async def audit_timeline(
+    belief_id: str, session_id: str, token: str | None = Depends(require_auth)
+) -> dict:
+    _guard(session_id, token)
     backend = await _backend(session_id)
     belief = await backend.get_belief(belief_id)
     if belief is None:
@@ -401,7 +545,12 @@ async def _demo_payload(backend) -> dict:
 
 
 @app.post("/api/demo/seed")
-async def demo_seed(session_id: str = _DEMO_SID, force: bool = False) -> dict:
+async def demo_seed(
+    session_id: str = _DEMO_SID,
+    force: bool = False,
+    token: str | None = Depends(require_auth),
+) -> dict:
+    _guard(session_id, token)
     backend = await _backend(session_id)
     gid = backend.group_id
     if not force:
@@ -454,7 +603,8 @@ async def demo_seed(session_id: str = _DEMO_SID, force: bool = False) -> dict:
 
 
 @app.post("/api/reset")
-async def reset(session_id: str) -> dict:
+async def reset(session_id: str, token: str | None = Depends(require_auth)) -> dict:
+    _guard(session_id, token)
     sess = _SESSIONS.get(session_id)
     if sess and sess["backend"] is not None:
         await sess["backend"].close()
@@ -464,11 +614,18 @@ async def reset(session_id: str) -> dict:
         FalkorDB(host="localhost", port=6379).select_graph(f"pg_{session_id}").delete()
     except Exception:
         pass
-    _SESSIONS[session_id] = {"config": sess["config"] if sess else {}, "backend": None}
+    # keep config + OWNERSHIP across a reset (else another token could re-claim the session)
+    _SESSIONS[session_id] = {
+        "config": sess["config"] if sess else {},
+        "backend": None,
+        "owner": (sess.get("owner") if sess else None) or token,
+    }
     return {"ok": True}
 
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    # Loopback by default; set COGNIFLOW_BIND_HOST to expose. The module-level guard above
+    # refuses to start unauthenticated on a non-loopback interface unless COGNIFLOW_ALLOW_OPEN=1.
+    uvicorn.run(app, host=_BIND_HOST, port=int(os.getenv("COGNIFLOW_PORT", "8000")))

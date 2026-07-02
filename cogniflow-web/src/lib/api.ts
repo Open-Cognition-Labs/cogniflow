@@ -1,5 +1,10 @@
 // Client for the Cogniflow Playground API (cogniflow-api/main.py).
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// Optional bearer token for a secured API (server-side COGNIFLOW_API_TOKENS). Unset -> the API
+// runs in open/dev mode and no Authorization header is sent, so local dev is unchanged.
+const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN;
+const authHeaders = (base: Record<string, string> = {}): Record<string, string> =>
+  API_TOKEN ? { ...base, Authorization: `Bearer ${API_TOKEN}` } : base;
 
 export type ServedFact = {
   belief_id: string;
@@ -73,7 +78,7 @@ export type DemoSeed = {
 async function jpost<T>(path: string, body: unknown): Promise<T> {
   const r = await fetch(`${API_URL}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(body),
   });
   if (!r.ok) throw new Error((await r.text()) || `${r.status}`);
@@ -81,7 +86,7 @@ async function jpost<T>(path: string, body: unknown): Promise<T> {
 }
 
 async function jget<T>(path: string): Promise<T> {
-  const r = await fetch(`${API_URL}${path}`);
+  const r = await fetch(`${API_URL}${path}`, { headers: authHeaders() });
   if (!r.ok) throw new Error((await r.text()) || `${r.status}`);
   return r.json();
 }
@@ -122,7 +127,7 @@ export const api = {
     fd.append("session_id", session_id);
     fd.append("file", file);
     if (reference_time) fd.append("reference_time", reference_time);
-    const r = await fetch(`${API_URL}/api/ingest`, { method: "POST", body: fd });
+    const r = await fetch(`${API_URL}/api/ingest`, { method: "POST", headers: authHeaders(), body: fd });
     if (!r.ok) throw new Error((await r.text()) || `${r.status}`);
     return r.json() as Promise<{
       document: string;

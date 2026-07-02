@@ -125,6 +125,14 @@ pnpm -C cogniflow-web start   # or deploy the build output to your host`}</Code>
               plugins to <b>local endpoints</b> (Ollama, vLLM, or a self-hosted embedder) so no
               request leaves your network.
             </p>
+            <p className="mt-3 rounded-lg border border-warn/30 bg-warn/[0.06] p-3 text-sm">
+              <b>Security posture.</b> The API has <b>baseline security</b> &mdash; bearer-token
+              auth, token-scoped session access, rate limits, and upload caps (set{" "}
+              <code>COGNIFLOW_API_TOKENS</code>; see <code>SECURITY.md</code>). It is safe in a{" "}
+              <b>trusted environment</b>, <b>not</b> enterprise-ready: RBAC, access-audit logging,
+              GDPR deletion, and hardened multi-tenant isolation are not included yet. Terminate
+              TLS in front of it and keep it behind a network boundary.
+            </p>
           </Doc>
 
           <Doc id="using" title="Using the platform">
