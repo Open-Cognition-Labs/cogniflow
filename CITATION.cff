@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use Cogniflow in your work, please cite it as below."
+title: "Cogniflow: a bi-temporal RAG platform with system-time replay"
+type: software
+authors:
+  - family-names: Madishetti
+    given-names: Nagendhra
+repository-code: "https://github.com/Open-Cognition-Labs/cogniflow"
+license: Apache-2.0
+abstract: >-
+  Cogniflow stores every fact on two independent time axes (event time and system time),
+  serving cited, temporally-correct answers and replaying past belief states without
+  leaking later corrections into the past (the un-knowing invariant, enforced in CI).
+keywords:
+  - retrieval-augmented-generation
+  - bitemporal
+  - temporal-knowledge-graph
+  - audit
+  - provenance
