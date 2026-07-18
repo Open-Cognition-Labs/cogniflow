@@ -98,37 +98,6 @@ pip install "ragbrain[all,serve]"   # backends + the platform API
 ## Architecture
 
 <img width="1060" height="923" alt="RAGBrain architecture" src="docs/media/architecture.png" />
-
-```
-                          +---------------------------------------------+
-   PDF / MD / text  ----> | INGEST    parse -> structure-preserving      |
-   (+ the date true)      |           chunks -> Episodes                 |
-                          +---------------------+-----------------------+
-                                                |
-                                                v
-                          +---------------------------------------------+
-                          | WRITE     extraction + contradiction resolve |
-                          |   stamps  valid_at / invalid_at  (EVENT)     |
-                          |           created_at / expired_at (SYSTEM)   |
-                          |   correction -> expire old + superseded_by   |
-                          +---------------------+-----------------------+
-                                                |
-                                                v
-                          +---------------------------------------------+
-                          | STORE     FalkorDB (per-group graph) | Neo4j |
-                          +---------+-----------------------+-----------+
-                relevance path      |                       |   audit path (direct temporal scan)
-                                    v                       v
-              +------------------------------+   +------------------------------------+
-              | RETRIEVE  serve_context      |   | REPLAY   event_time_query(T)        |
-              |  as-of validity filter       |   |          valid_at <= T              |
-              |  -> rank -> grounded         |   |          system_time_replay(S)      |
-              |  generation -> faithfulness  |   |          created_at <= S            |
-              |  check -> cited answer       |   |          + un-know post-S changes   |
-              +------------------------------+   |  -> audit API + web scrubber        |
-                                                 +------------------------------------+
-```
-
 The core is dependency-free: `ragbrain.core` imports only the standard library. Storage,
 models, and retrieval are adapters behind stable interfaces, selected by configuration.
 
