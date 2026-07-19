@@ -7,9 +7,18 @@
 
 **The Open-Source Bi-Temporal RAG Framework for AI Agents. Prove what your AI knew, and when.**
 
+RAGBrain is a **long-term memory and retrieval layer for LLM agents**. It pairs
+retrieval-augmented generation with a **temporal knowledge graph**, so an agent can answer
+what is true *now*, what was true *on any past date*, and what the system *believed at a past
+moment* before a correction arrived.
+
 Any document in, a cited and temporally-correct answer out, plus the capability the rest of
 the field lacks: replay what the system believed at any past moment, without leaking later
 corrections into the past.
+
+`agent memory` · `LLM long-term memory` · `temporal knowledge graph` · `point-in-time queries`
+· `GraphRAG` · `vector search` · `grounded answers` · `provenance and audit` · `MCP server`
+· `self-hosted`
 
 [![ci](https://github.com/Nagendhra-Madishetti/ragbrain/actions/workflows/ci.yml/badge.svg)](https://github.com/Nagendhra-Madishetti/ragbrain/actions/workflows/ci.yml)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
@@ -63,6 +72,41 @@ the un-knowing invariant, enforced in CI against a live graph store.
 - **Multi-replica ready.** Shared session state and a shared durable write-back journal,
   proven by a two-replica test; a metrics endpoint for operations.
 - **Self-hostable end to end.** Your documents, your models, your infrastructure.
+
+## What you can build with it
+
+- **Agent memory that survives the session.** Give an LLM agent long-term memory over your
+  documents and its own observations, with citations attached to every fact it recalls.
+- **Compliance and audit copilots.** Answer "what did our policy say in March, and what did
+  we believe at the time?" with a defensible provenance trail rather than a plausible guess.
+- **Financial, legal, and medical retrieval** where a superseded fact is not merely stale but
+  wrong, and where the correction history itself is part of the record.
+- **Enterprise knowledge bases** that change constantly: pricing, org charts, contracts,
+  specifications, SOPs. Corrections supersede instead of silently overwriting.
+- **Hallucination and grounding checks.** Answers are constrained to retrieved context and
+  verified claim by claim; unsupported claims are flagged, never quietly shipped.
+- **RAG evaluation and regression testing** against a corpus whose truth changes over time.
+
+## Where RAGBrain fits
+
+The agent-memory and RAG ecosystem is crowded, and most of it is complementary rather than
+competing. Roughly how the categories divide:
+
+| Category | Examples | What they optimise for |
+|---|---|---|
+| Memory layers for agents | Mem0, Zep, Letta | extracting, consolidating and recalling user-level memory |
+| RAG frameworks | LangChain, LlamaIndex, Haystack | orchestration, connectors, retrieval pipelines |
+| Temporal knowledge graphs | Graphiti, cognee | storing facts with time attached |
+| **RAGBrain** | this project | **auditable temporal correctness: as-of retrieval, system-time replay, and provenance you can defend** |
+
+RAGBrain is built on a temporal graph substrate (Graphiti on FalkorDB or Neo4j) and focuses
+on the layer above it: enforcing that a replay of the past cannot be contaminated by facts
+learned later, and exposing that guarantee through an auditable API. It is designed to sit
+underneath an agent framework, not to replace one.
+
+Measured comparisons against LlamaIndex, LangChain, Haystack, and a temporal-graph ablation
+are in [Benchmarks](#benchmarks), with a reproduce command. Systems not listed there have not
+been benchmarked here, and no claim is made about them.
 
 ## Quick start
 
@@ -183,6 +227,49 @@ loudly in every response until a real embedder is configured.
 | Embedders | [docs/EMBEDDERS.md](docs/EMBEDDERS.md) |
 | Generation and faithfulness | [docs/GENERATION.md](docs/GENERATION.md) |
 | Extending without touching core | [docs/EXTENDING.md](docs/EXTENDING.md), [CONTRIBUTING.md](CONTRIBUTING.md) |
+
+## FAQ
+
+**What is bi-temporal RAG?**
+Retrieval-augmented generation where every fact carries two independent time axes: *event
+time* (when it was true in the world) and *system time* (when the system learned it). That
+second axis is what lets you ask "what did we believe last March?" and get an answer that
+excludes everything learned since.
+
+**How is this different from a vector database?**
+A vector store answers "what is semantically similar". It has no notion of a fact being
+superseded, so a corrected document and its replacement both remain retrievable with no
+ordering between them. RAGBrain keeps the correction history and filters by validity before
+ranking, so an as-of query cannot return a fact that was not yet true.
+
+**Can I use it as memory for an LLM agent?**
+Yes. That is the primary use case. Facts can be written by ingestion or by the agent itself
+via `record_observation`, and served back through a context API, an MCP server, or the HTTP
+API, each answer carrying citations and validity windows.
+
+**Does it work with LangChain or LlamaIndex?**
+Yes. RAGBrain is a memory and retrieval layer, not an agent framework. It ships a LlamaIndex
+bridge, and the HTTP and MCP surfaces work with any orchestrator.
+
+**Which LLM and embedding models does it support?**
+Any OpenAI-compatible endpoint for generation, and local (`bge-m3`) or hosted embedders.
+Every plug is config-selected and fails loud rather than silently degrading. There is a
+key-free deterministic default so the demo runs with no API keys.
+
+**Do I have to send my data to a third party?**
+No. The whole stack is self-hostable: FalkorDB or Neo4j for storage, local embedding and
+reranking models, and your own inference endpoint.
+
+**Is it production ready?**
+It is early. The core contracts, replay invariant, and multi-replica behaviour are covered by
+164 tests in CI including a live graph database. Read
+[PROJECT_STATUS.md](PROJECT_STATUS.md) for measured evaluation floors and
+[docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) for the open defect ledger before deploying.
+
+**How does it prevent hallucinations?**
+Generation is constrained to the served context, then every claim in the answer is checked
+back against those facts. Unsupported claims are flagged or the answer is declined, depending
+on the configured mode. It reduces unsupported output; it does not eliminate it.
 
 ## Development
 

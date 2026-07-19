@@ -10,7 +10,12 @@ readme = "README.md"
 requires-python = ">=3.10,<4"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Nagendhra Madishetti", email = "nagendhra405@gmail.com" }]
-keywords = ["rag", "temporal", "knowledge-graph", "agents", "falsification", "memory"]
+keywords = [
+  "rag", "retrieval-augmented-generation", "agent-memory", "llm-memory", "long-term-memory",
+  "ai-agents", "llm", "temporal", "bitemporal", "knowledge-graph", "temporal-knowledge-graph",
+  "graphrag", "vector-search", "semantic-search", "memory", "provenance", "audit",
+  "point-in-time", "hallucination-detection", "grounding", "mcp", "falsification",
+]
 classifiers = [
   "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3.10",
