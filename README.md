@@ -86,7 +86,7 @@ timeline         -> Boston (2019 report) superseded by Denver (2022 press releas
 Open the live scrubber at http://localhost:3000/playground and drag the system-time slider
 across 2022; the answer flips in front of you:
 
-![System-time replay: scrubbing past the 2022 correction flips the belief Boston to Denver](docs/media/replay-scrubber.gif)
+![System-time replay: scrubbing past the 2022 correction flips the belief Boston to Denver](docs/media/replay-demo.gif)
 
 ### Install as a library
 
